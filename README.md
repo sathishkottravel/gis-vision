@@ -28,9 +28,26 @@ Only Phase 0+1 is fully planned. The others are skeletons (proposal only), plann
 
 ## Getting started
 
-Prerequisites: Node LTS, pnpm, Docker Desktop (needed by Compose and Testcontainers), and the [OpenSpec CLI](https://github.com/Fission-AI/OpenSpec) with Claude Code.
+Prerequisites: Node 22.12+, pnpm, Docker Desktop (needed by Compose and Testcontainers), and the [OpenSpec CLI](https://github.com/Fission-AI/OpenSpec) with Claude Code.
 
-Code is scaffolded feature by feature; setup commands land in this README as the features are built (F0.2 adds `docker compose up -d`).
+### Local setup
+
+```sh
+pnpm install
+cp .env.example .env        # defaults match docker-compose.yml
+docker compose up -d        # PostGIS + RustFS, then creates the `captures` bucket
+docker compose ps -a        # db and rustfs (healthy); rustfs-init Exited (0)
+```
+
+| Service                     | Address                                 | Notes                                                       |
+| --------------------------- | --------------------------------------- | ----------------------------------------------------------- |
+| PostgreSQL 17 + PostGIS 3.6 | `localhost:5432`                        | user/password/db from `.env` (`gis` / `gis` / `gis_vision`) |
+| RustFS S3 API               | `http://localhost:9000`                 | path-style; keys from `.env`                                |
+| RustFS console              | `http://localhost:9001/rustfs/console/` | log in with the S3 keys from `.env`                         |
+
+Check PostGIS: `docker compose exec db psql -U gis -d gis_vision -c "SELECT postgis_full_version();"`
+
+Reset all local data: `docker compose down -v`.
 
 ## OpenSpec workflow
 
@@ -65,9 +82,10 @@ Useful CLI commands: `openspec list` (changes), `openspec list --specs` (archive
 
 ## Project gotchas
 
-- **Uploads are presigned:** Lambda/API Gateway cap request bodies at about 6MB, so image bytes go straight to S3/MinIO, never through the API.
+- **Uploads are presigned:** Lambda/API Gateway cap request bodies at about 6MB, so image bytes go straight to S3/RustFS, never through the API.
 - **PostGIS lives in the `extensions` schema:** this keeps `spatial_ref_sys` out of `public` and avoids ORM migration drift.
 - **`detection` is partitioned by month:** its primary key is `(id, observed_at)` and it can't be the target of foreign keys. Partitions are created ahead of time, with a DEFAULT partition as a safety net.
 - **No TimescaleDB:** it isn't portable (Supabase dropped it on PG17), so the project uses native partitioning + BRIN.
 - **Lambda has no static outbound IP:** the droplet database is protected by TLS, PgBouncer, strong credentials and fail2ban, not an IP allowlist (a NAT gateway would cost about $32/mo).
+- **RustFS instead of MinIO:** MinIO no longer publishes community Docker images, so local S3 is RustFS. The app only speaks the S3 API, so swapping stores is a config change.
 - **Windows:** Testcontainers needs Docker Desktop running.

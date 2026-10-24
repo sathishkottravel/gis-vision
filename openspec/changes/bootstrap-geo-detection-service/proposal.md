@@ -12,17 +12,17 @@ Features are implemented and verified one at a time, in order. Each feature maps
 
 **Phase 0: Scaffold**
 - **F0.1 Monorepo & tooling:** pnpm workspaces (`apps/api`, `apps/web`, `packages/schemas`), strict TypeScript, ESLint/Prettier, Vitest.
-- **F0.2 Local infrastructure:** Docker Compose with PostgreSQL 17 + PostGIS and MinIO (bucket created on startup).
+- **F0.2 Local infrastructure:** Docker Compose with PostgreSQL 17 + PostGIS and RustFS (bucket created on startup).
 - **F0.3 API skeleton:** Fastify `buildApp(deps)` factory, Zod-validated env config, structured logging, `GET /health` reporting DB and bucket status.
-- **F0.4 Test harness:** Testcontainers setup for PostGIS and MinIO; first integration test against `/health`.
+- **F0.4 Test harness:** Testcontainers setup for PostGIS and RustFS; first integration test against `/health`.
 - **F0.5 CI:** GitHub Actions running lint, typecheck, unit and integration tests.
 - **F0.6 Roadmap doc:** `docs/ROADMAP.md` holding all phases, feature lists and exit criteria (the durable copy of the milestones below).
 
 **Phase 1: Captures & detections (REST)**
 - **F1.1 Database foundation:** Drizzle setup, PostGIS in an `extensions` schema, migration pipeline.
 - **F1.2 Core tables:** `detector`, `capture`, and `detection` (monthly range partitions on `observed_at`, plus GiST and BRIN indexes).
-- **F1.3 BlobStore port:** interface, in-memory fake, S3-API adapter (MinIO), shared contract test suite.
-- **F1.4 Capture upload (presigned):** `POST /captures` (metadata: content type, size, optional GeoJSON point and capture time; `Idempotency-Key`) creates a `pending` capture and returns a short-lived presigned PUT URL. The client uploads directly to object storage, then calls `POST /captures/:id/complete`, which verifies the object and marks the capture `ready`. `GET /captures/:id` returns the capture with a presigned image URL. Image bytes never pass through the API, so the same flow works locally (MinIO) and on Lambda.
+- **F1.3 BlobStore port:** interface, in-memory fake, S3-API adapter (RustFS), shared contract test suite.
+- **F1.4 Capture upload (presigned):** `POST /captures` (metadata: content type, size, optional GeoJSON point and capture time; `Idempotency-Key`) creates a `pending` capture and returns a short-lived presigned PUT URL. The client uploads directly to object storage, then calls `POST /captures/:id/complete`, which verifies the object and marks the capture `ready`. `GET /captures/:id` returns the capture with a presigned image URL. Image bytes never pass through the API, so the same flow works locally (RustFS) and on Lambda.
 - **F1.5 Detector registry:** seeded `manual` detector with an output JSON Schema; `GET /detectors`, `GET /detectors/:id/schema`.
 - **F1.6 Detections:** `POST /captures/:id/detections` with Ajv validation against the detector schema; `GET /captures/:id/detections`.
 - **F1.7 Minimal UI:** a single plain page to upload an image and list its captures and detections. No generated UI yet.
@@ -65,4 +65,4 @@ Each phase becomes its own OpenSpec change, planned in detail only when the prev
 
 - New monorepo: `apps/api`, `apps/web` (minimal page only), `packages/schemas`, `docs/ROADMAP.md`.
 - Dependencies: Fastify, Drizzle ORM/drizzle-kit, Zod, Ajv, AWS S3 SDK, Vitest, Testcontainers.
-- Infrastructure: Docker Compose (PostgreSQL + PostGIS, MinIO); GitHub Actions CI.
+- Infrastructure: Docker Compose (PostgreSQL + PostGIS, RustFS); GitHub Actions CI.
