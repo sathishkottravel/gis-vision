@@ -122,7 +122,7 @@
   <text x="616" y="372" class="lbl">results</text>
 
   <!-- Footer -->
-  <text x="20" y="590" class="s">Local dev: docker compose (PostGIS + MinIO, LocalStack from P4). Integration tests use Testcontainers. The same ports and adapters run locally and in the cloud.</text>
+  <text x="20" y="590" class="s">Local dev: docker compose (PostGIS + RustFS, LocalStack from P4). Integration tests use Testcontainers. The same ports and adapters run locally and in the cloud.</text>
   <rect x="20" y="608" width="34" height="16" class="box"/>
   <text x="62" y="621" class="s">built in Phases 0 to 2.5</text>
   <rect x="240" y="608" width="34" height="16" class="box later"/>

@@ -14,21 +14,21 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 2. F0.2 Local infrastructure
 
-- [ ] 2.1 Add `docker-compose.yml` with pinned `postgis/postgis` (PG17) image, named volume and healthcheck; verify `docker compose up -d` makes the DB container healthy and `SELECT postgis_full_version()` works via `docker compose exec`
-- [ ] 2.2 Add MinIO with a one-shot init container that creates the captures bucket (private); verify the bucket exists in the MinIO console
-- [ ] 2.3 Add `.env.example` documenting every variable (DB URL, S3 endpoint, bucket, credentials, region, upload limits); verify copying it to `.env` is enough for later features
-- [ ] 2.4 Add a root `README.md` "Local setup" section (prerequisites, `docker compose up -d`, ports) and verify the steps work from a clean checkout
+- [x] 2.1 Add `docker-compose.yml` with pinned `postgis/postgis` (PG17) image, named volume and healthcheck; verify `docker compose up -d` makes the DB container healthy and `SELECT postgis_full_version()` works via `docker compose exec`
+- [x] 2.2 Add RustFS with a one-shot init container that creates the captures bucket (private); verify the bucket exists in the RustFS console
+- [x] 2.3 Add `.env.example` documenting every variable (DB URL, S3 endpoint, bucket, credentials, region, upload limits); verify copying it to `.env` is enough for later features
+- [x] 2.4 Add a root `README.md` "Local setup" section (prerequisites, `docker compose up -d`, ports) and verify the steps work from a clean checkout
 
 ## 3. F0.3 API skeleton
 
 - [ ] 3.1 Add a Zod-validated config module in `apps/api` that fails fast with the names of invalid/missing settings and never prints secret values; verify with unit tests for valid, missing and malformed config
 - [ ] 3.2 Implement the `buildApp(deps)` Fastify factory with structured logging (pino, with request ids) and a server entry `src/server.ts`; verify `pnpm --filter api dev` starts and logs JSON
 - [ ] 3.3 Implement `GET /health` with timed database and object-storage checks behind small health-check interfaces, returning 200/503 per the `service-health` spec without leaking internals; verify unit tests with fake checks cover ok, db-down, storage-down and timeout
-- [ ] 3.4 Verify manually against Compose: `curl localhost:<port>/health` returns 200, and after `docker compose stop minio` returns 503 with `objectStorage: "error"`
+- [ ] 3.4 Verify manually against Compose: `curl localhost:<port>/health` returns 200, and after `docker compose stop rustfs` returns 503 with `objectStorage: "error"`
 
 ## 4. F0.4 Integration test harness
 
-- [ ] 4.1 Add Testcontainers global setup that starts the PostGIS and MinIO containers once per integration run, creates the bucket and exposes connection config; verify the containers start and stop with `pnpm test:integration`
+- [ ] 4.1 Add Testcontainers global setup that starts the PostGIS and RustFS containers once per integration run, creates the bucket and exposes connection config; verify the containers start and stop with `pnpm test:integration`
 - [ ] 4.2 Add a helper that builds the app against the containers and uses `app.inject`; verify the first integration test `health.int.test.ts` gets 200 with all dependencies `ok`
 
 ## 5. F0.5 Continuous integration
@@ -57,14 +57,14 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 - [ ] 9.1 Define the `BlobStore` port (`presignPut`, `presignGet`, `head`, `put`, `delete`) and an in-memory fake; verify typecheck passes
 - [ ] 9.2 Write a shared contract test suite (put/head/delete round trip, head on missing key, presigned PUT then head, presigned GET downloads bytes, expired URL rejected); verify it passes against the in-memory fake
-- [ ] 9.3 Implement the S3-API adapter (configurable endpoint, path-style for MinIO, presigned PUT bound to content type); verify the same contract suite passes against MinIO in integration tests
+- [ ] 9.3 Implement the S3-API adapter (configurable endpoint, path-style for RustFS, presigned PUT bound to content type); verify the same contract suite passes against RustFS in integration tests
 - [ ] 9.4 Switch the `/health` object-storage check to use the BlobStore adapter; verify the health integration test still passes
 
 ## 10. F1.4 Capture upload (presigned)
 
 - [ ] 10.1 Add shared Zod request/response schemas for captures in `packages/schemas` (allowed content types, size limit from config, GeoJSON Point in WGS84 range); verify unit tests cover valid input and each rejection in the `capture-ingest` spec
 - [ ] 10.2 Implement `POST /captures` (pending capture + presigned PUT + `expiresAt`) with `Idempotency-Key` handling (same key returns the same capture, different payload returns 409); verify integration tests for 201, 400 cases, retry and 409
-- [ ] 10.3 Implement `POST /captures/:id/complete` (HEAD the object, check size and type, set `ready`, idempotent); verify integration tests that upload through the presigned URL to MinIO and cover ready, missing object, size mismatch, repeat and 404
+- [ ] 10.3 Implement `POST /captures/:id/complete` (HEAD the object, check size and type, set `ready`, idempotent); verify integration tests that upload through the presigned URL to RustFS and cover ready, missing object, size mismatch, repeat and 404
 - [ ] 10.4 Implement `GET /captures/:id` (GeoJSON location, presigned `imageUrl` only when ready) and `GET /captures` (newest first, bounded page size); verify integration tests that the image downloads from `imageUrl`, plus pending, 404 and ordering
 - [ ] 10.5 Document the upload flow (sequence and example `curl` commands) in `apps/api/README.md`; verify the documented commands work against Compose
 

@@ -25,7 +25,7 @@ This change implements **Phase 0 and Phase 1** (see proposal.md - What Changes a
 - Each feature (F0.x, F1.x) is independently implementable, testable and committable, in order.
 
 **Non-Goals:**
-- Runtime adapters other than local ones (Fastify server, MinIO). The Lambda wrapper, SQS and pg-boss come in later phases.
+- Runtime adapters other than local ones (Fastify server, RustFS). The Lambda wrapper, SQS and pg-boss come in later phases.
 - Multi-tenant or auth concerns.
 - Any UI beyond a single plain upload/list page (F1.7).
 
@@ -43,7 +43,7 @@ This change implements **Phase 0 and Phase 1** (see proposal.md - What Changes a
  |   Drizzle ORM  -->  drizzle-zod  -->  Zod  -->  JSON Schema                  |
  +-------+-----------------------------+----------------------------------------+
          v                             v
-  PostgreSQL + PostGIS          S3-compatible store (MinIO locally)
+  PostgreSQL + PostGIS          S3-compatible store (RustFS locally)
 ```
 
 Monorepo layout: `apps/api`, `apps/web`, `packages/schemas` (shared Zod schemas and generated JSON Schema), with `workers/cv` reserved.
@@ -71,7 +71,7 @@ In this change, the REST endpoints also provide the simple reads (`GET /captures
 
 ### D4a. Presigned two-step upload [This change]
 ```
- client                     api                          object storage (MinIO / S3)
+ client                     api                          object storage (RustFS / S3)
    | POST /captures {meta}   |                                  |
    |------------------------>| insert capture(status=pending)  |
    |<------------------------| {id, uploadUrl, expiresAt}       |
@@ -89,7 +89,7 @@ In this change, the REST endpoints also provide the simple reads (`GET /captures
 Geometry crosses both APIs as GeoJSON (`ST_AsGeoJSON`, `ST_GeomFromGeoJSON`), in SRID 4326.
 
 ### D5. Ports and adapters [Partial: BlobStore + DetectorRegistry now, JobQueue in Phase 4]
-- `BlobStore`: `presignPut`, `presignGet`, `head`, `put`, `delete`. One S3-API adapter covers MinIO, AWS S3 and DigitalOcean Spaces; an in-memory fake is used in unit tests.
+- `BlobStore`: `presignPut`, `presignGet`, `head`, `put`, `delete`. One S3-API adapter covers RustFS, AWS S3 and DigitalOcean Spaces; an in-memory fake is used in unit tests.
 - `DetectorRegistry`: lists detectors and resolves schemas, backed by the `detector` table.
 - `JobQueue`: not defined in this change. It arrives in Phase 4 with pg-boss, and later an SQS adapter if AWS is chosen.
 The Fastify app is built by a factory (`buildApp(deps)`), so a Lambda entry can wrap it later without code changes.
@@ -124,7 +124,7 @@ The web app introspects GraphQL to discover entities and fields, and fetches det
 
 ### D10. Test strategy [Partial: unit, contract, integration now; E2E in Phase 3]
 - **Unit (Vitest):** schema validation, detector registry, domain services with in-memory fakes.
-- **Contract suites:** one shared suite per port, run against the fake and the real adapter (MinIO via Testcontainers).
+- **Contract suites:** one shared suite per port, run against the fake and the real adapter (RustFS via Testcontainers).
 - **Integration:** Testcontainers PostGIS. In this change it covers migrations (extension schema, partitions, indexes), partition routing at month boundaries, and REST through `buildApp` with `inject`. Spatial/temporal query cases (bbox, radius edges) come in Phase 2.
 - **E2E (Playwright, few):** upload -> annotate -> detection visible on the map.
 - **Per-feature rule:** every feature F0.x / F1.x ships with its own tests and leaves CI green before the next feature starts.
@@ -134,7 +134,8 @@ Each phase is a separate OpenSpec change. `tasks.md` groups tasks under one head
 *Alternative:* applying a whole phase in one pass is faster, but harder to review, learn from and demo incrementally.
 
 ### D11. Local environment [This change]
-Docker Compose runs `postgis/postgis` (PG17) and MinIO, with a bucket created on startup. The API and web run on the host in dev. Configuration comes from env vars validated by Zod at startup.
+Docker Compose runs `postgis/postgis` (PG17) and RustFS, with a bucket created on startup. The API and web run on the host in dev. Configuration comes from env vars validated by Zod at startup.
+*Local object storage:* the plan originally named MinIO, but MinIO stopped publishing community container images in late 2025. RustFS (Apache-2.0, S3-compatible, single container with a web console) replaces it. The S3-API adapter is unaffected, because it only speaks S3. *Alternatives:* SeaweedFS (mature, but needs a JSON identities config) and LocalStack S3 (heavier; recent images may need an auth token).
 
 ## Risks / Trade-offs
 

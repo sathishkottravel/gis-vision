@@ -1,0 +1,63 @@
+# Local development infrastructure. Usage: `cp .env.example .env && docker compose up -d`
+name: gis-vision
+
+services:
+  db:
+    image: postgis/postgis:17-3.6
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-gis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gis}
+      POSTGRES_DB: ${POSTGRES_DB:-gis_vision}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # Mounting this directory hides the image's own init script (PostGIS in `public`).
+      - ./docker/db/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rustfs:
+    # S3-compatible object storage (MinIO no longer publishes community images).
+    image: rustfs/rustfs:1.0.3
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY_ID:-rustfsadmin}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_ACCESS_KEY:-rustfsadmin-secret}
+      RUSTFS_CONSOLE_ENABLE: 'true'
+    ports:
+      - '${S3_PORT:-9000}:9000'
+      - '${S3_CONSOLE_PORT:-9001}:9001'
+    volumes:
+      - rustfs-data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:9000/health']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # One-shot job: creates the private captures bucket, then exits.
+  rustfs-init:
+    image: amazon/aws-cli:2.38.5
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-rustfsadmin}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-rustfsadmin-secret}
+      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
+      BUCKET: ${S3_BUCKET:-captures}
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - >
+        aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket "$${BUCKET}" 2>/dev/null
+        || aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket "$${BUCKET}";
+        aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket "$${BUCKET}"
+        && echo "bucket $${BUCKET} ready"
+    restart: 'no'
+
+volumes:
+  db-data:
+  rustfs-data:
