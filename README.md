@@ -49,6 +49,15 @@ Check PostGIS: `docker compose exec db psql -U gis -d gis_vision -c "SELECT post
 
 Reset all local data: `docker compose down -v`.
 
+### Run the API
+
+```sh
+pnpm --filter @gis-vision/api dev   # watches src/, reads ../../.env, logs JSON
+curl localhost:3000/health          # 200 {"status":"ok","database":"ok","objectStorage":"ok"}
+```
+
+`/health` returns 503 with the failing dependency set to `"error"` when Postgres or object storage is down or slower than `HEALTH_CHECK_TIMEOUT_MS` (default 2000).
+
 ## OpenSpec workflow
 
 ```
