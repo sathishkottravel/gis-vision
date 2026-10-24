@@ -6,11 +6,11 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 1. F0.1 Monorepo & tooling
 
-- [ ] 1.1 Create a `feature/bootstrap` branch from `main` (which already has README, `.gitignore` and planning docs); verify `git branch --show-current` prints `feature/bootstrap`
-- [ ] 1.2 Create the pnpm workspace (`pnpm-workspace.yaml`, root `package.json` with `lint`, `typecheck`, `test`, `test:integration` scripts) and package stubs `apps/api`, `apps/web`, `packages/schemas`; verify `pnpm install` succeeds and `pnpm -r exec pwd` lists all three
-- [ ] 1.3 Add a shared strict `tsconfig.base.json` (strict, `noUncheckedIndexedAccess`, ESM) with per-package tsconfigs; verify `pnpm typecheck` passes on a placeholder `src/index.ts` in each package
-- [ ] 1.4 Configure ESLint (typescript-eslint, type-aware) and Prettier with `.editorconfig`; verify `pnpm lint` passes and fails on a deliberately unused variable
-- [ ] 1.5 Configure Vitest workspace with separate unit and integration projects (`*.test.ts` vs `*.int.test.ts`); verify `pnpm test` runs a trivial passing test in `packages/schemas`
+- [x] 1.1 Create a `feature/bootstrap` branch from `main` (which already has README, `.gitignore` and planning docs); verify `git branch --show-current` prints `feature/bootstrap`
+- [x] 1.2 Create the pnpm workspace (`pnpm-workspace.yaml`, root `package.json` with `lint`, `typecheck`, `test`, `test:integration` scripts) and package stubs `apps/api`, `apps/web`, `packages/schemas`; verify `pnpm install` succeeds and `pnpm -r exec pwd` lists all three
+- [x] 1.3 Add a shared strict `tsconfig.base.json` (strict, `noUncheckedIndexedAccess`, ESM) with per-package tsconfigs; verify `pnpm typecheck` passes on a placeholder `src/index.ts` in each package
+- [x] 1.4 Configure ESLint (typescript-eslint, type-aware) and Prettier with `.editorconfig`; verify `pnpm lint` passes and fails on a deliberately unused variable
+- [x] 1.5 Configure Vitest workspace with separate unit and integration projects (`*.test.ts` vs `*.int.test.ts`); verify `pnpm test` runs a trivial passing test in `packages/schemas`
 
 ## 2. F0.2 Local infrastructure
 

@@ -12,17 +12,17 @@ Node/TS (Fastify, GraphQL Yoga + Pothos, Drizzle, Zod) | PostgreSQL 17 + PostGIS
 
 Planned with [OpenSpec](https://github.com/Fission-AI/OpenSpec). Each phase is one change in `openspec/changes/` and is implemented **one feature at a time**.
 
-| Phase | Change | Focus |
-|---|---|---|
-| 0+1 | `bootstrap-geo-detection-service` | scaffold, REST captures (presigned upload), detectors, detections |
-| 2 | `phase-2-graphql-geo-queries` | GraphQL, bbox/radius/time queries, map |
-| 2.5 | `phase-2-5-deploy-v0` | AWS serverless + PostGIS droplet |
-| 3 | `phase-3-schema-driven-ui` | UI generated from schemas |
-| 4 | `phase-4-async-processing` | queue, outbox, retries, DLQ |
-| 5 | `phase-5-cv-worker` | Python CV detector |
-| 6 | `phase-6-caching-performance` | vector tiles, caching, load tests |
-| 7 | `phase-7-iac-production-deploy` | CDK + Terraform, CD |
-| 8 | `phase-8-hardening` | tracing, auth, rate limits |
+| Phase | Change                            | Focus                                                             |
+| ----- | --------------------------------- | ----------------------------------------------------------------- |
+| 0+1   | `bootstrap-geo-detection-service` | scaffold, REST captures (presigned upload), detectors, detections |
+| 2     | `phase-2-graphql-geo-queries`     | GraphQL, bbox/radius/time queries, map                            |
+| 2.5   | `phase-2-5-deploy-v0`             | AWS serverless + PostGIS droplet                                  |
+| 3     | `phase-3-schema-driven-ui`        | UI generated from schemas                                         |
+| 4     | `phase-4-async-processing`        | queue, outbox, retries, DLQ                                       |
+| 5     | `phase-5-cv-worker`               | Python CV detector                                                |
+| 6     | `phase-6-caching-performance`     | vector tiles, caching, load tests                                 |
+| 7     | `phase-7-iac-production-deploy`   | CDK + Terraform, CD                                               |
+| 8     | `phase-8-hardening`               | tracing, auth, rate limits                                        |
 
 Only Phase 0+1 is fully planned. The others are skeletons (proposal only), planned when the previous phase is archived.
 
