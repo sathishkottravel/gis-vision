@@ -21,10 +21,10 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 3. F0.3 API skeleton
 
-- [ ] 3.1 Add a Zod-validated config module in `apps/api` that fails fast with the names of invalid/missing settings and never prints secret values; verify with unit tests for valid, missing and malformed config
-- [ ] 3.2 Implement the `buildApp(deps)` Fastify factory with structured logging (pino, with request ids) and a server entry `src/server.ts`; verify `pnpm --filter api dev` starts and logs JSON
-- [ ] 3.3 Implement `GET /health` with timed database and object-storage checks behind small health-check interfaces, returning 200/503 per the `service-health` spec without leaking internals; verify unit tests with fake checks cover ok, db-down, storage-down and timeout
-- [ ] 3.4 Verify manually against Compose: `curl localhost:<port>/health` returns 200, and after `docker compose stop rustfs` returns 503 with `objectStorage: "error"`
+- [x] 3.1 Add a Zod-validated config module in `apps/api` that fails fast with the names of invalid/missing settings and never prints secret values; verify with unit tests for valid, missing and malformed config
+- [x] 3.2 Implement the `buildApp(deps)` Fastify factory with structured logging (pino, with request ids) and a server entry `src/server.ts`; verify `pnpm --filter api dev` starts and logs JSON
+- [x] 3.3 Implement `GET /health` with timed database and object-storage checks behind small health-check interfaces, returning 200/503 per the `service-health` spec without leaking internals; verify unit tests with fake checks cover ok, db-down, storage-down and timeout
+- [x] 3.4 Verify manually against Compose: `curl localhost:<port>/health` returns 200, and after `docker compose stop rustfs` returns 503 with `objectStorage: "error"`
 
 ## 4. F0.4 Integration test harness
 
