@@ -135,6 +135,7 @@ Each phase is a separate OpenSpec change. `tasks.md` groups tasks under one head
 
 ### D11. Local environment [This change]
 Docker Compose runs `postgis/postgis` (PG17) and RustFS, with a bucket created on startup. The API and web run on the host in dev. Configuration comes from env vars validated by Zod at startup.
+*Data exploration:* an optional `tools` Compose profile adds pgAdmin, the same dashboard planned for the droplet in Phase 2.5, whose geometry viewer renders PostGIS results on a map. `pnpm db:studio` (Drizzle Studio) shows the typed schema. Neither runs by default.
 *Local object storage:* the plan originally named MinIO, but MinIO stopped publishing community container images in late 2025. RustFS (Apache-2.0, S3-compatible, single container with a web console) replaces it. The S3-API adapter is unaffected, because it only speaks S3. *Alternatives:* SeaweedFS (mature, but needs a JSON identities config) and LocalStack S3 (heavier; recent images may need an auth token).
 
 ## Risks / Trade-offs

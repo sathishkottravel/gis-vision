@@ -12,7 +12,8 @@
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
-    "db:migrate": "pnpm --filter @gis-vision/api db:migrate"
+    "db:migrate": "pnpm --filter @gis-vision/api db:migrate",
+    "db:studio": "pnpm --filter @gis-vision/api db:studio"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
