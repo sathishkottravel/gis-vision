@@ -13,7 +13,7 @@ describe('integration harness', () => {
     await ctx.app.close();
   });
 
-  it('installs PostGIS into the extensions schema, not public (design D8)', async () => {
+  it('migrates the shared database: PostGIS is in the extensions schema', async () => {
     const { rows } = await ctx.infra.pool.query<{ schema: string }>(
       `SELECT extnamespace::regnamespace::text AS schema FROM pg_extension WHERE extname = 'postgis'`,
     );

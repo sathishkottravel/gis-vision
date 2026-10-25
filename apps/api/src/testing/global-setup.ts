@@ -1,8 +1,10 @@
-import { readFile } from 'node:fs/promises';
 import { CreateBucketCommand, S3Client } from '@aws-sdk/client-s3';
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
+import pg from 'pg';
 import { GenericContainer, Wait } from 'testcontainers';
 import type { TestProject } from 'vitest/node';
+import { poolConfig } from '../db/client.js';
+import { runMigrations } from '../db/migrate.js';
 
 declare module 'vitest' {
   export interface ProvidedContext {
@@ -11,10 +13,9 @@ declare module 'vitest' {
   }
 }
 
-// Same images and PostGIS init as docker-compose.yml.
+// Same images as docker-compose.yml.
 const POSTGIS_IMAGE = 'postgis/postgis:17-3.6';
 const RUSTFS_IMAGE = 'rustfs/rustfs:1.0.3';
-const INIT_SQL = new URL('../../../../docker/db/initdb/10_postgis.sql', import.meta.url);
 
 const S3_ACCESS_KEY = 'test-access-key';
 const S3_SECRET_KEY = 'test-secret-key';
@@ -22,12 +23,10 @@ const S3_BUCKET = 'captures';
 const S3_REGION = 'us-east-1';
 
 /**
- * Starts PostGIS and RustFS once per integration run and exposes their connection
- * settings via `inject('integrationEnv')`. Returns the teardown that stops both.
+ * Starts PostGIS and RustFS once per integration run, applies the database migrations,
+ * creates the bucket and exposes connection settings via `inject('integrationEnv')`. Returns the teardown that stops both.
  */
 export default async function setup(project: TestProject): Promise<() => Promise<void>> {
-  const initSql = await readFile(INIT_SQL, 'utf8');
-
   const [db, rustfs] = await Promise.all([
     new PostgreSqlContainer(POSTGIS_IMAGE)
       .withDatabase('gis_vision')
@@ -35,11 +34,11 @@ export default async function setup(project: TestProject): Promise<() => Promise
       .withPassword('gis')
       .withCopyContentToContainer([
         // Neutralise the image's own init script, which installs PostGIS into `public`.
+        // The migrations install it into `extensions` instead (design D8).
         {
-          content: '#!/bin/sh\n# Replaced by 10_postgis.sql\n',
+          content: '#!/bin/sh\n# PostGIS is installed by the database migrations.\n',
           target: '/docker-entrypoint-initdb.d/10_postgis.sh',
         },
-        { content: initSql, target: '/docker-entrypoint-initdb.d/10_postgis.sql' },
       ])
       .start(),
     new GenericContainer(RUSTFS_IMAGE)
@@ -48,6 +47,13 @@ export default async function setup(project: TestProject): Promise<() => Promise
       .withWaitStrategy(Wait.forHttp('/health', 9000).forStatusCode(200))
       .start(),
   ]);
+
+  const pool = new pg.Pool(poolConfig(db.getConnectionUri(), { max: 1 }));
+  try {
+    await runMigrations(pool);
+  } finally {
+    await pool.end();
+  }
 
   const s3Endpoint = `http://${rustfs.getHost()}:${String(rustfs.getMappedPort(9000))}`;
   const s3 = new S3Client({

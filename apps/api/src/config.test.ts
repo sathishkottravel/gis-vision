@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ConfigError, loadConfig } from './config.js';
+import { ConfigError, loadConfig, loadDatabaseConfig } from './config.js';
 
 const validEnv = {
   DATABASE_URL: 'postgres://gis:gis@localhost:5432/gis_vision',
@@ -65,5 +65,17 @@ describe('loadConfig', () => {
 
     expect(error.message).not.toContain('p@ssw0rd');
     expect(error.message).toContain('DATABASE_URL');
+  });
+});
+
+describe('loadDatabaseConfig', () => {
+  it('needs only DATABASE_URL, so migrations run without S3 settings', () => {
+    expect(loadDatabaseConfig({ DATABASE_URL: validEnv.DATABASE_URL })).toEqual({
+      DATABASE_URL: validEnv.DATABASE_URL,
+    });
+  });
+
+  it('rejects a missing DATABASE_URL by name', () => {
+    expect(() => loadDatabaseConfig({})).toThrow('DATABASE_URL is required');
   });
 });

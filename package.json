@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run --project unit",
-    "test:integration": "vitest run --project integration"
+    "test:integration": "vitest run --project integration",
+    "db:migrate": "pnpm --filter @gis-vision/api db:migrate"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

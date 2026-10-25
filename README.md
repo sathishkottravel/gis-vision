@@ -39,6 +39,7 @@ pnpm install
 cp .env.example .env        # defaults match docker-compose.yml
 docker compose up -d        # PostGIS + RustFS, then creates the `captures` bucket
 docker compose ps -a        # db and rustfs (healthy); rustfs-init Exited (0)
+pnpm db:migrate             # installs PostGIS into `extensions`, then applies table migrations
 ```
 
 | Service                     | Address                                 | Notes                                                       |
@@ -50,6 +51,16 @@ docker compose ps -a        # db and rustfs (healthy); rustfs-init Exited (0)
 Check PostGIS: `docker compose exec db psql -U gis -d gis_vision -c "SELECT postgis_full_version();"`
 
 Reset all local data: `docker compose down -v`.
+
+### Database migrations
+
+Migrations live in `apps/api/drizzle/` and are applied by Drizzle's migrator, which records them in `drizzle.__drizzle_migrations`, so `pnpm db:migrate` is safe to rerun. Integration tests apply them automatically.
+
+```sh
+pnpm --filter @gis-vision/api db:generate                      # SQL from schema changes in src/db/schema.ts
+pnpm --filter @gis-vision/api db:generate --custom --name=<n>  # empty SQL file for DDL Drizzle can't express
+pnpm --filter @gis-vision/api db:check                         # migration files are consistent (also run in CI)
+```
 
 ### Run the API
 
@@ -71,7 +82,7 @@ pnpm test:integration  # *.int.test.ts against PostGIS + RustFS started by Testc
 
 Integration tests need Docker running but not Compose: Testcontainers starts its own throwaway containers once per run and removes them afterwards. The first run pulls the images, so it is slower.
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the same four commands on Node 24 (current LTS) for every pull request and every push to `main`.
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the same four commands, plus `db:check`, on Node 24 (current LTS) for every pull request and every push to `main`.
 
 ## OpenSpec workflow
 
@@ -107,7 +118,7 @@ Useful CLI commands: `openspec list` (changes), `openspec list --specs` (archive
 ## Project gotchas
 
 - **Uploads are presigned:** Lambda/API Gateway cap request bodies at about 6MB, so image bytes go straight to S3/RustFS, never through the API.
-- **PostGIS lives in the `extensions` schema:** this keeps `spatial_ref_sys` out of `public` and avoids ORM migration drift.
+- **PostGIS lives in the `extensions` schema:** this keeps `spatial_ref_sys` out of `public` and avoids ORM migration drift. The first migration installs it there; Compose and Testcontainers hide the `postgis/postgis` image's own init script, which would put it in `public`. Every app connection sets `search_path=public,extensions`.
 - **`detection` is partitioned by month:** its primary key is `(id, observed_at)` and it can't be the target of foreign keys. Partitions are created ahead of time, with a DEFAULT partition as a safety net.
 - **No TimescaleDB:** it isn't portable (Supabase dropped it on PG17), so the project uses native partitioning + BRIN.
 - **Lambda has no static outbound IP:** the droplet database is protected by TLS, PgBouncer, strong credentials and fail2ban, not an IP allowlist (a NAT gateway would cost about $32/mo).

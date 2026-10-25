@@ -17,6 +17,11 @@ const configSchema = z.object({
 
 export type Config = z.infer<typeof configSchema>;
 
+/** The subset needed by tooling that only talks to the database, such as `db:migrate`. */
+const databaseConfigSchema = configSchema.pick({ DATABASE_URL: true });
+
+export type DatabaseConfig = z.infer<typeof databaseConfigSchema>;
+
 export class ConfigError extends Error {
   constructor(readonly invalidSettings: string[]) {
     super(`Invalid configuration: ${invalidSettings.join('; ')}`);
@@ -30,7 +35,16 @@ export class ConfigError extends Error {
  * so secrets cannot leak into logs.
  */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  const result = configSchema.safeParse(env);
+  return parseEnv(configSchema, env);
+}
+
+/** Like `loadConfig`, but validates only the database settings. */
+export function loadDatabaseConfig(env: NodeJS.ProcessEnv = process.env): DatabaseConfig {
+  return parseEnv(databaseConfigSchema, env);
+}
+
+function parseEnv<T extends z.ZodType>(schema: T, env: NodeJS.ProcessEnv): z.infer<T> {
+  const result = schema.safeParse(env);
   if (result.success) {
     return result.data;
   }
