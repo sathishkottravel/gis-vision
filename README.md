@@ -128,6 +128,8 @@ Useful CLI commands: `openspec list` (changes), `openspec list --specs` (archive
 - **Uploads are presigned:** Lambda/API Gateway cap request bodies at about 6MB, so image bytes go straight to S3/RustFS, never through the API.
 - **PostGIS lives in the `extensions` schema:** this keeps `spatial_ref_sys` out of `public` and avoids ORM migration drift. The first migration installs it there; Compose and Testcontainers hide the `postgis/postgis` image's own init script, which would put it in `public`. Every app connection sets `search_path=public,extensions`.
 - **`detection` is partitioned by month:** its primary key is `(id, observed_at)` and it can't be the target of foreign keys. Partitions are created ahead of time, with a DEFAULT partition as a safety net.
+- **Drizzle's `geometry()` column drops the SRID:** it emits `geometry(point)` and writes SRID 0. Point columns use `pointGeometry` (`apps/api/src/db/geometry.ts`), a small custom type for `geometry(Point, 4326)`.
+- **`detection` DDL is hand-written:** partitions and BRIN live in a custom migration; `src/db/detection.ts` maps the table for typed queries but sits outside drizzle-kit's `schema` path so it never generates DDL. `pnpm db:studio` still shows it.
 - **No TimescaleDB:** it isn't portable (Supabase dropped it on PG17), so the project uses native partitioning + BRIN.
 - **Lambda has no static outbound IP:** the droplet database is protected by TLS, PgBouncer, strong credentials and fail2ban, not an IP allowlist (a NAT gateway would cost about $32/mo).
 - **RustFS instead of MinIO:** MinIO no longer publishes community Docker images, so local S3 is RustFS. The app only speaks the S3 API, so swapping stores is a config change.

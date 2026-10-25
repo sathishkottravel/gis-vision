@@ -50,9 +50,9 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 8. F1.2 Core tables
 
-- [ ] 8.1 Define the `detector` and `capture` tables in the Drizzle schema (capture: status, blob_key, content_type, byte_size, unique nullable idempotency_key, captured_at, geometry Point 4326, meta, created_at) with a GiST index on `capture.geom`; generate the migration and verify an integration test inserts and reads a capture with a point
-- [ ] 8.2 Add a custom SQL migration for the `detection` table partitioned by range on `observed_at` (PK `(id, observed_at)`), monthly partitions for the past 12 and next 12 months plus a DEFAULT partition, GiST on `geom`, BRIN on `observed_at`, B-tree on `capture_id` and `(detector_id, observed_at)`; verify an integration test checks the partitions and indexes exist in `pg_catalog`
-- [ ] 8.3 Map `detection` in the Drizzle schema for typed queries (without letting drizzle-kit manage its DDL); verify integration tests insert rows at 2026-01-31T23:59:59Z, 2026-02-01T00:00:00Z and three years ago, and that each lands in the expected partition (or DEFAULT)
+- [x] 8.1 Define the `detector` and `capture` tables in the Drizzle schema (capture: status, blob_key, content_type, byte_size, unique nullable idempotency_key, captured_at, geometry Point 4326, meta, created_at) with a GiST index on `capture.geom`; generate the migration and verify an integration test inserts and reads a capture with a point
+- [x] 8.2 Add a custom SQL migration for the `detection` table partitioned by range on `observed_at` (PK `(id, observed_at)`), monthly partitions for the past 12 and next 12 months plus a DEFAULT partition, GiST on `geom`, BRIN on `observed_at`, B-tree on `capture_id` and `(detector_id, observed_at)`; verify an integration test checks the partitions and indexes exist in `pg_catalog`
+- [x] 8.3 Map `detection` in the Drizzle schema for typed queries (without letting drizzle-kit manage its DDL); verify integration tests insert rows at 2026-01-31T23:59:59Z, 2026-02-01T00:00:00Z and three years ago, and that each lands in the expected partition (or DEFAULT)
 
 ## 9. F1.3 BlobStore port
 
