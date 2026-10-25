@@ -56,10 +56,10 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 9. F1.3 BlobStore port
 
-- [ ] 9.1 Define the `BlobStore` port (`presignPut`, `presignGet`, `head`, `put`, `delete`) and an in-memory fake; verify typecheck passes
-- [ ] 9.2 Write a shared contract test suite (put/head/delete round trip, head on missing key, presigned PUT then head, presigned GET downloads bytes, expired URL rejected); verify it passes against the in-memory fake
-- [ ] 9.3 Implement the S3-API adapter (configurable endpoint, path-style for RustFS, presigned PUT bound to content type); verify the same contract suite passes against RustFS in integration tests
-- [ ] 9.4 Switch the `/health` object-storage check to use the BlobStore adapter; verify the health integration test still passes
+- [x] 9.1 Define the `BlobStore` port (`presignPut`, `presignGet`, `head`, `put`, `delete`) and an in-memory fake; verify typecheck passes
+- [x] 9.2 Write a shared contract test suite (put/head/delete round trip, head on missing key, presigned PUT then head, presigned GET downloads bytes, expired URL rejected); verify it passes against the in-memory fake
+- [x] 9.3 Implement the S3-API adapter (configurable endpoint, path-style for RustFS, presigned PUT bound to content type); verify the same contract suite passes against RustFS in integration tests
+- [x] 9.4 Switch the `/health` object-storage check to use the BlobStore adapter; verify the health integration test still passes
 
 ## 10. F1.4 Capture upload (presigned)
 
