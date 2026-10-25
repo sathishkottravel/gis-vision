@@ -26,7 +26,7 @@ Planned with [OpenSpec](https://github.com/Fission-AI/OpenSpec). Each phase is o
 | 7     | `phase-7-iac-production-deploy`   | CDK + Terraform, CD                                               |
 | 8     | `phase-8-hardening`               | tracing, auth, rate limits                                        |
 
-Only Phase 0+1 is fully planned. The others are skeletons (proposal only), planned when the previous phase is archived.
+Only Phase 0+1 is fully planned. The others are skeletons (proposal only), planned when the previous phase is archived. See [docs/ROADMAP.md](docs/ROADMAP.md) for every phase's features, exit criteria and the deployment decision.
 
 ## Getting started
 
