@@ -38,8 +38,8 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 6. F0.6 Roadmap document
 
-- [ ] 6.1 Write `docs/ROADMAP.md` with every phase (0-8 and 2.5), its feature list, exit criteria, the deployment decision, and the rule that each phase is a separate OpenSpec change applied one feature at a time; verify it matches the Milestones table in this change's proposal and lists every skeleton change in `openspec/changes/`
-- [ ] 6.2 Link the roadmap from the README; verify the link resolves
+- [x] 6.1 Write `docs/ROADMAP.md` with every phase (0-8 and 2.5), its feature list, exit criteria, the deployment decision, and the rule that each phase is a separate OpenSpec change applied one feature at a time; verify it matches the Milestones table in this change's proposal and lists every skeleton change in `openspec/changes/`
+- [x] 6.2 Link the roadmap from the README; verify the link resolves
 
 ## 7. F1.1 Database foundation
 
