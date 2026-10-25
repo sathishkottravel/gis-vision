@@ -2,7 +2,12 @@ packages:
   - apps/*
   - packages/*
 
-# pnpm 11 blocks dependency build scripts unless allowed here.
-# esbuild's postinstall only verifies its platform binary (used by tsx and Vite).
+# pnpm 11 blocks dependency build scripts unless decided here.
 allowBuilds:
+  # Postinstall only verifies its platform binary (used by tsx and Vite).
   esbuild: true
+  # Pulled in by testcontainers -> dockerode. Optional native add-ons for Docker-over-SSH
+  # and a version-check script; not needed for the local Docker socket/pipe.
+  cpu-features: false
+  protobufjs: false
+  ssh2: false
