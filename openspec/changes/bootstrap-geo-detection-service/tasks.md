@@ -46,7 +46,7 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 - [x] 7.1 Add Drizzle ORM and drizzle-kit to `apps/api` with a DB client module that sets `search_path` to include `extensions`; verify typecheck passes and a unit test checks the client config
 - [x] 7.2 Add the first custom SQL migration: `CREATE SCHEMA extensions`, `CREATE EXTENSION postgis SCHEMA extensions`; verify an integration test runs migrations on a fresh container and `ST_MakePoint` works without schema qualification
 - [x] 7.3 Add a `db:migrate` script and run migrations in the integration global setup; verify running migrations twice is a no-op and `drizzle-kit check` reports no drift (no `spatial_ref_sys` in `public`)
-- [ ] 7.4 Add local database exploration: a pgAdmin service in Compose behind an optional `tools` profile with the local server pre-registered, and a `db:studio` script for Drizzle Studio; verify pgAdmin connects and its geometry viewer shows an `ST_MakePoint` result, and `pnpm db:studio` starts
+- [x] 7.4 Add local database exploration: a pgAdmin service in Compose behind an optional `tools` profile with the local server pre-registered, and a `db:studio` script for Drizzle Studio; verify pgAdmin connects and its geometry viewer shows an `ST_MakePoint` result, and `pnpm db:studio` starts
 
 ## 8. F1.2 Core tables
 
