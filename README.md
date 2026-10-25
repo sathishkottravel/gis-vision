@@ -47,6 +47,7 @@ pnpm db:migrate             # installs PostGIS into `extensions`, then applies t
 | PostgreSQL 17 + PostGIS 3.6 | `localhost:5432`                        | user/password/db from `.env` (`gis` / `gis` / `gis_vision`) |
 | RustFS S3 API               | `http://localhost:9000`                 | path-style; keys from `.env`                                |
 | RustFS console              | `http://localhost:9001/rustfs/console/` | log in with the S3 keys from `.env`                         |
+| pgAdmin (optional)          | `http://localhost:5050`                 | `docker compose --profile tools up -d`; no login            |
 
 Check PostGIS: `docker compose exec db psql -U gis -d gis_vision -c "SELECT postgis_full_version();"`
 
@@ -83,6 +84,13 @@ pnpm test:integration  # *.int.test.ts against PostGIS + RustFS started by Testc
 Integration tests need Docker running but not Compose: Testcontainers starts its own throwaway containers once per run and removes them afterwards. The first run pulls the images, so it is slower.
 
 CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the same four commands, plus `db:check`, on Node 24 (current LTS) for every pull request and every push to `main`.
+
+### Explore the database
+
+- **pgAdmin:** `docker compose --profile tools up -d`, open `http://localhost:5050`, expand _gis-vision (local)_ and enter the DB password (`gis`). In the Query Tool, the map icon on a geometry column opens the geometry viewer, e.g. for `SELECT ST_MakePoint(13.4, 52.5) AS geom;`.
+- **Drizzle Studio:** `pnpm db:studio`, then open `https://local.drizzle.studio`. Shows the tables defined in `apps/api/src/db/schema.ts`.
+- **psql:** `docker compose exec db psql -U gis -d gis_vision` (`\dn` schemas, `\dx` extensions, `\dt public.*` tables).
+- **Desktop clients** (DBeaver has a map view for geometry): `localhost:5432`, `gis` / `gis`, database `gis_vision`.
 
 ## OpenSpec workflow
 
