@@ -33,8 +33,8 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 5. F0.5 Continuous integration
 
-- [ ] 5.1 Add a GitHub Actions workflow (pnpm cache, current Node LTS) running lint, typecheck, unit and integration tests on push and pull request; verify the workflow file passes `actionlint` (or a local dry run), and is green on the first push
-- [ ] 5.2 Add a CI status badge and a "Running tests" section to the README; verify the documented commands run as written
+- [x] 5.1 Add a GitHub Actions workflow (pnpm cache, current Node LTS) running lint, typecheck, unit and integration tests on push and pull request; verify the workflow file passes `actionlint` (or a local dry run), and is green on the first push
+- [x] 5.2 Add a CI status badge and a "Running tests" section to the README; verify the documented commands run as written
 
 ## 6. F0.6 Roadmap document
 
