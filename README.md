@@ -87,7 +87,7 @@ CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the same four c
 
 ### Explore the database
 
-- **pgAdmin:** `docker compose --profile tools up -d`, open `http://localhost:5050`, expand _gis-vision (local)_ and enter the DB password (`gis`). In the Query Tool, the map icon on a geometry column opens the geometry viewer, e.g. for `SELECT ST_MakePoint(13.4, 52.5) AS geom;`.
+- **pgAdmin:** `docker compose --profile tools up -d`, open `http://localhost:5050`, expand _gis-vision (local)_ and enter the DB password (`gis`). In the Query Tool, the map icon on a geometry column opens the geometry viewer, e.g. for `SELECT ST_SetSRID(ST_MakePoint(13.4, 52.5), 4326) AS geom;` (with SRID 4326 it draws an OpenStreetMap basemap; SRID 0 shows a blank grid).
 - **Drizzle Studio:** `pnpm db:studio`, then open `https://local.drizzle.studio`. Shows the tables defined in `apps/api/src/db/schema.ts`.
 - **psql:** `docker compose exec db psql -U gis -d gis_vision` (`\dn` schemas, `\dx` extensions, `\dt public.*` tables).
 - **Desktop clients** (DBeaver has a map view for geometry): `localhost:5432`, `gis` / `gis`, database `gis_vision`.
