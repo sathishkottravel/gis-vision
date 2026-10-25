@@ -17,6 +17,10 @@ export default defineConfig({
         test: {
           name: 'integration',
           include: [`${sources}/*.int.test.ts`],
+          // Starts PostGIS and RustFS once per run (Testcontainers; Docker must be running).
+          globalSetup: ['apps/api/src/testing/global-setup.ts'],
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
         },
       },
     ],

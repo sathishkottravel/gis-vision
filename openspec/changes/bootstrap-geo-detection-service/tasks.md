@@ -28,8 +28,8 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 4. F0.4 Integration test harness
 
-- [ ] 4.1 Add Testcontainers global setup that starts the PostGIS and RustFS containers once per integration run, creates the bucket and exposes connection config; verify the containers start and stop with `pnpm test:integration`
-- [ ] 4.2 Add a helper that builds the app against the containers and uses `app.inject`; verify the first integration test `health.int.test.ts` gets 200 with all dependencies `ok`
+- [x] 4.1 Add Testcontainers global setup that starts the PostGIS and RustFS containers once per integration run, creates the bucket and exposes connection config; verify the containers start and stop with `pnpm test:integration`
+- [x] 4.2 Add a helper that builds the app against the containers and uses `app.inject`; verify the first integration test `health.int.test.ts` gets 200 with all dependencies `ok`
 
 ## 5. F0.5 Continuous integration
 

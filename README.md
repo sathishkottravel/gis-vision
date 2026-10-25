@@ -28,7 +28,7 @@ Only Phase 0+1 is fully planned. The others are skeletons (proposal only), plann
 
 ## Getting started
 
-Prerequisites: Node 22.12+, pnpm, Docker Desktop (needed by Compose and Testcontainers), and the [OpenSpec CLI](https://github.com/Fission-AI/OpenSpec) with Claude Code.
+Prerequisites: Node 22.22+ (required by Testcontainers), pnpm 11, Docker Desktop (needed by Compose and Testcontainers), and the [OpenSpec CLI](https://github.com/Fission-AI/OpenSpec) with Claude Code.
 
 ### Local setup
 
@@ -97,4 +97,4 @@ Useful CLI commands: `openspec list` (changes), `openspec list --specs` (archive
 - **No TimescaleDB:** it isn't portable (Supabase dropped it on PG17), so the project uses native partitioning + BRIN.
 - **Lambda has no static outbound IP:** the droplet database is protected by TLS, PgBouncer, strong credentials and fail2ban, not an IP allowlist (a NAT gateway would cost about $32/mo).
 - **RustFS instead of MinIO:** MinIO no longer publishes community Docker images, so local S3 is RustFS. The app only speaks the S3 API, so swapping stores is a config change.
-- **Windows:** Testcontainers needs Docker Desktop running.
+- **Windows:** integration tests (Testcontainers) need Docker Desktop running. If they hang at "Starting container" (containers stuck in `Created`), Docker Desktop's API pipe is wedged: restart Docker Desktop (a reboot fixed it here), then kill leftover `vitest` processes and delete the folder `%LOCALAPPDATA%\Temp\testcontainers-node--1.lock.lock`.
