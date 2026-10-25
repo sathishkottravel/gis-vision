@@ -8,6 +8,20 @@
       "when": 1792903872594,
       "tag": "0000_postgis-extension",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792939977638,
+      "tag": "0001_core-tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792939992986,
+      "tag": "0002_detection-partitions",
+      "breakpoints": true
     }
   ]
 }

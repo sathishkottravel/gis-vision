@@ -8,7 +8,7 @@
     "db:migrate": "tsx --env-file-if-exists=../../.env src/db/migrate-cli.ts",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
-    "db:studio": "drizzle-kit studio",
+    "db:studio": "drizzle-kit studio --config=drizzle.studio.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

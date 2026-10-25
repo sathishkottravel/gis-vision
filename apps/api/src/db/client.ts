@@ -1,6 +1,7 @@
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type pg from 'pg';
-import * as schema from './schema.js';
+import { detection } from './detection.js';
+import * as managed from './schema.js';
 
 /** App tables live in `public`, PostGIS in `extensions` (design D8). */
 export const SEARCH_PATH = ['public', 'extensions'] as const;
@@ -17,6 +18,9 @@ export function poolConfig(databaseUrl: string, overrides: pg.PoolConfig = {}): 
     options: `-c search_path=${SEARCH_PATH.join(',')}`,
   };
 }
+
+/** drizzle-kit-managed tables plus the hand-migrated `detection` table. */
+const schema = { ...managed, detection };
 
 export type Database = NodePgDatabase<typeof schema>;
 
