@@ -1,5 +1,7 @@
 # gis-vision
 
+[![CI](https://github.com/sathishkottravel/gis-vision/actions/workflows/ci.yml/badge.svg)](https://github.com/sathishkottravel/gis-vision/actions/workflows/ci.yml)
+
 A geospatial detection service. Images (captures) are uploaded, then detectors (a human first, ML later) record what they found, located in **space and time**, in PostGIS. The project is a portfolio piece showing Node.js/TypeScript, REST + GraphQL, PostGIS and time-series data, serverless/IaC, distributed systems and testing.
 
 ![Architecture](docs/architecture.svg)
@@ -57,6 +59,19 @@ curl localhost:3000/health          # 200 {"status":"ok","database":"ok","object
 ```
 
 `/health` returns 503 with the failing dependency set to `"error"` when Postgres or object storage is down or slower than `HEALTH_CHECK_TIMEOUT_MS` (default 2000).
+
+### Running tests
+
+```sh
+pnpm lint              # ESLint (type-aware) + Prettier check; `pnpm format` fixes formatting
+pnpm typecheck         # tsc in every package
+pnpm test              # unit tests (*.test.ts), no Docker needed
+pnpm test:integration  # *.int.test.ts against PostGIS + RustFS started by Testcontainers
+```
+
+Integration tests need Docker running but not Compose: Testcontainers starts its own throwaway containers once per run and removes them afterwards. The first run pulls the images, so it is slower.
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the same four commands on Node 24 (current LTS) for every pull request and every push to `main`.
 
 ## OpenSpec workflow
 
