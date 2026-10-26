@@ -53,3 +53,12 @@ curl -s "localhost:3000/captures?limit=5"
 ```
 
 Uploading from a browser on another origin additionally needs a CORS rule on the bucket.
+
+## Detectors
+
+A detector is whatever records detections on a capture: a human (`manual`, seeded by a migration) or, later, an ML model. Each one declares a JSON Schema for its detection `attributes`.
+
+- `GET /detectors` lists every detector with `id`, `name`, `version` and `kind` (`manual` or `ml`), ordered by id.
+- `GET /detectors/:id/schema` returns that detector's output schema (`application/schema+json`), or 404.
+
+Output schemas must stay within a subset that form generators (JSON Forms) can render: an object whose properties are strings, numbers, integers or booleans, enums of those, or arrays of them. `$ref`, nested objects and combinators such as `oneOf` are rejected; `checkDetectorSchema` in [`@gis-vision/schemas`](../../packages/schemas/src/detectors.ts) checks a schema and lists any violations. The `manual` schema allows free-form attributes (`additionalProperties: true`).

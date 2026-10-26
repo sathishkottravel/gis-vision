@@ -6,6 +6,7 @@ import type { AppDeps } from './app.js';
 import { CaptureService } from './captures/capture-service.js';
 import type { Config } from './config.js';
 import { createDatabase, poolConfig, type Database } from './db/client.js';
+import { PgDetectorRegistry } from './detectors/detector-registry.js';
 import { databaseCheck, objectStorageCheck } from './health/checks.js';
 import type { HealthCheck } from './health/health.js';
 
@@ -56,5 +57,6 @@ export function createAppDeps(config: Config, infra: Infrastructure): AppDeps {
       }),
       maxUploadBytes: config.UPLOAD_MAX_BYTES,
     },
+    detectors: { registry: new PgDetectorRegistry(infra.db) },
   };
 }
