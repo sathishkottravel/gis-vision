@@ -32,6 +32,10 @@ export function createS3Client(config: S3Config): S3Client {
     region: config.S3_REGION,
     endpoint: config.S3_ENDPOINT,
     forcePathStyle: config.S3_FORCE_PATH_STYLE,
+    // By default the SDK signs a CRC32 of the (empty) request body into presigned PUT URLs,
+    // which AWS S3 then rejects for the real upload. Checksums only where an operation needs them.
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
     ...(config.S3_ACCESS_KEY_ID && config.S3_SECRET_ACCESS_KEY
       ? {
           credentials: {

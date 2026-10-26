@@ -1,2 +1,3 @@
-// Placeholder; shared Zod schemas arrive with F1.4.
-export const schemasPackageName = '@gis-vision/schemas';
+// Shared Zod schemas: the API validates with them and the web app types its requests from them.
+export * from './captures.js';
+export * from './geo.js';

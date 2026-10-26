@@ -13,6 +13,16 @@ const configSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
   S3_FORCE_PATH_STYLE: z.stringbool().default(false),
   HEALTH_CHECK_TIMEOUT_MS: z.coerce.number().int().positive().default(2000),
+  /** Largest image accepted by `POST /captures` (default 10 MiB). */
+  UPLOAD_MAX_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(10 * 1024 * 1024),
+  /** Lifetime of the presigned upload URL (design D4a: about 15 minutes). */
+  UPLOAD_URL_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+  /** Lifetime of the presigned `imageUrl` on ready captures. */
+  IMAGE_URL_TTL_SECONDS: z.coerce.number().int().positive().default(300),
 });
 
 export type Config = z.infer<typeof configSchema>;

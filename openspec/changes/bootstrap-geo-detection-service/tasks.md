@@ -63,11 +63,11 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 10. F1.4 Capture upload (presigned)
 
-- [ ] 10.1 Add shared Zod request/response schemas for captures in `packages/schemas` (allowed content types, size limit from config, GeoJSON Point in WGS84 range); verify unit tests cover valid input and each rejection in the `capture-ingest` spec
-- [ ] 10.2 Implement `POST /captures` (pending capture + presigned PUT + `expiresAt`) with `Idempotency-Key` handling (same key returns the same capture, different payload returns 409); verify integration tests for 201, 400 cases, retry and 409
-- [ ] 10.3 Implement `POST /captures/:id/complete` (HEAD the object, check size and type, set `ready`, idempotent); verify integration tests that upload through the presigned URL to RustFS and cover ready, missing object, size mismatch, repeat and 404
-- [ ] 10.4 Implement `GET /captures/:id` (GeoJSON location, presigned `imageUrl` only when ready) and `GET /captures` (newest first, bounded page size); verify integration tests that the image downloads from `imageUrl`, plus pending, 404 and ordering
-- [ ] 10.5 Document the upload flow (sequence and example `curl` commands) in `apps/api/README.md`; verify the documented commands work against Compose
+- [x] 10.1 Add shared Zod request/response schemas for captures in `packages/schemas` (allowed content types, size limit from config, GeoJSON Point in WGS84 range); verify unit tests cover valid input and each rejection in the `capture-ingest` spec
+- [x] 10.2 Implement `POST /captures` (pending capture + presigned PUT + `expiresAt`) with `Idempotency-Key` handling (same key returns the same capture, different payload returns 409); verify integration tests for 201, 400 cases, retry and 409
+- [x] 10.3 Implement `POST /captures/:id/complete` (HEAD the object, check size and type, set `ready`, idempotent); verify integration tests that upload through the presigned URL to RustFS and cover ready, missing object, size mismatch, repeat and 404
+- [x] 10.4 Implement `GET /captures/:id` (GeoJSON location, presigned `imageUrl` only when ready) and `GET /captures` (newest first, bounded page size); verify integration tests that the image downloads from `imageUrl`, plus pending, 404 and ordering
+- [x] 10.5 Document the upload flow (sequence and example `curl` commands) in `apps/api/README.md`; verify the documented commands work against Compose
 
 ## 11. F1.5 Detector registry
 

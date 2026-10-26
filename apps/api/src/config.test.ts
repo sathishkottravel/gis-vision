@@ -31,6 +31,9 @@ describe('loadConfig', () => {
       S3_REGION: 'us-east-1',
       S3_FORCE_PATH_STYLE: true,
       HEALTH_CHECK_TIMEOUT_MS: 2000,
+      UPLOAD_MAX_BYTES: 10_485_760,
+      UPLOAD_URL_TTL_SECONDS: 900,
+      IMAGE_URL_TTL_SECONDS: 300,
     });
   });
 

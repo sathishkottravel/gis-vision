@@ -72,6 +72,8 @@ curl localhost:3000/health          # 200 {"status":"ok","database":"ok","object
 
 `/health` returns 503 with the failing dependency set to `"error"` when Postgres or object storage is down or slower than `HEALTH_CHECK_TIMEOUT_MS` (default 2000).
 
+The capture upload flow (presigned URLs, idempotency) and `curl` examples are in [`apps/api/README.md`](apps/api/README.md#capture-upload-flow).
+
 ### Running tests
 
 ```sh
