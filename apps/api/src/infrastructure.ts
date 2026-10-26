@@ -2,6 +2,8 @@ import type { S3Client } from '@aws-sdk/client-s3';
 import pg from 'pg';
 import type { BlobStore } from './blob/blob-store.js';
 import { createS3Client, S3BlobStore } from './blob/s3-blob-store.js';
+import type { AppDeps } from './app.js';
+import { CaptureService } from './captures/capture-service.js';
 import type { Config } from './config.js';
 import { createDatabase, poolConfig, type Database } from './db/client.js';
 import { databaseCheck, objectStorageCheck } from './health/checks.js';
@@ -36,6 +38,23 @@ export function createInfrastructure(config: Config): Infrastructure {
     async close() {
       await pool.end();
       s3.destroy();
+    },
+  };
+}
+
+/** Wires configuration and infrastructure into `buildApp` dependencies (server and integration tests). */
+export function createAppDeps(config: Config, infra: Infrastructure): AppDeps {
+  return {
+    healthChecks: infra.healthChecks,
+    healthCheckTimeoutMs: config.HEALTH_CHECK_TIMEOUT_MS,
+    captures: {
+      service: new CaptureService({
+        db: infra.db,
+        blobStore: infra.blobStore,
+        uploadUrlTtlSeconds: config.UPLOAD_URL_TTL_SECONDS,
+        imageUrlTtlSeconds: config.IMAGE_URL_TTL_SECONDS,
+      }),
+      maxUploadBytes: config.UPLOAD_MAX_BYTES,
     },
   };
 }

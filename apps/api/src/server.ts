@@ -1,6 +1,6 @@
 import { buildApp } from './app.js';
 import { ConfigError, loadConfig, type Config } from './config.js';
-import { createInfrastructure } from './infrastructure.js';
+import { createAppDeps, createInfrastructure } from './infrastructure.js';
 
 function readConfig(): Config {
   try {
@@ -19,8 +19,7 @@ const config = readConfig();
 const infra = createInfrastructure(config);
 
 const app = await buildApp({
-  healthChecks: infra.healthChecks,
-  healthCheckTimeoutMs: config.HEALTH_CHECK_TIMEOUT_MS,
+  ...createAppDeps(config, infra),
   logger: { level: config.LOG_LEVEL },
 });
 

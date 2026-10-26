@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { inject } from 'vitest';
 import { buildApp } from '../app.js';
 import { loadConfig, type Config } from '../config.js';
-import { createInfrastructure, type Infrastructure } from '../infrastructure.js';
+import { createAppDeps, createInfrastructure, type Infrastructure } from '../infrastructure.js';
 
 /** Config pointing at the containers started by the integration global setup. */
 export function integrationConfig(): Config {
@@ -23,11 +23,7 @@ export interface IntegrationApp {
 export async function buildIntegrationApp(): Promise<IntegrationApp> {
   const config = integrationConfig();
   const infra = createInfrastructure(config);
-  const app = await buildApp({
-    healthChecks: infra.healthChecks,
-    healthCheckTimeoutMs: config.HEALTH_CHECK_TIMEOUT_MS,
-    logger: false,
-  });
+  const app = await buildApp({ ...createAppDeps(config, infra), logger: false });
   app.addHook('onClose', () => infra.close());
   return { app, infra, config };
 }
