@@ -1,5 +1,7 @@
-import { S3Client } from '@aws-sdk/client-s3';
+import type { S3Client } from '@aws-sdk/client-s3';
 import pg from 'pg';
+import type { BlobStore } from './blob/blob-store.js';
+import { createS3Client, S3BlobStore } from './blob/s3-blob-store.js';
 import type { Config } from './config.js';
 import { createDatabase, poolConfig, type Database } from './db/client.js';
 import { databaseCheck, objectStorageCheck } from './health/checks.js';
@@ -10,6 +12,7 @@ export interface Infrastructure {
   pool: pg.Pool;
   db: Database;
   s3: S3Client;
+  blobStore: BlobStore;
   healthChecks: HealthCheck[];
   close(): Promise<void>;
 }
@@ -21,26 +24,15 @@ export function createInfrastructure(config: Config): Infrastructure {
       connectionTimeoutMillis: config.HEALTH_CHECK_TIMEOUT_MS,
     }),
   );
-
-  const s3 = new S3Client({
-    region: config.S3_REGION,
-    endpoint: config.S3_ENDPOINT,
-    forcePathStyle: config.S3_FORCE_PATH_STYLE,
-    ...(config.S3_ACCESS_KEY_ID && config.S3_SECRET_ACCESS_KEY
-      ? {
-          credentials: {
-            accessKeyId: config.S3_ACCESS_KEY_ID,
-            secretAccessKey: config.S3_SECRET_ACCESS_KEY,
-          },
-        }
-      : {}),
-  });
+  const s3 = createS3Client(config);
+  const blobStore = new S3BlobStore(s3, config.S3_BUCKET);
 
   return {
     pool,
     db: createDatabase(pool),
     s3,
-    healthChecks: [databaseCheck(pool), objectStorageCheck(s3, config.S3_BUCKET)],
+    blobStore,
+    healthChecks: [databaseCheck(pool), objectStorageCheck(blobStore)],
     async close() {
       await pool.end();
       s3.destroy();
