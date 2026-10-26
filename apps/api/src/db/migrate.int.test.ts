@@ -2,9 +2,11 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import pg from 'pg';
+import { checkDetectorSchema } from '@gis-vision/schemas';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { PgDetectorRegistry } from '../detectors/detector-registry.js';
 import { integrationConfig } from '../testing/integration-app.js';
-import { poolConfig } from './client.js';
+import { createDatabase, poolConfig } from './client.js';
 import { MIGRATIONS_FOLDER, runMigrations } from './migrate.js';
 
 /** Runs the migrations against a brand-new database in the shared PostGIS container. */
@@ -79,6 +81,27 @@ describe('database migrations on a fresh database', () => {
       expect(rows[0]?.wkt).toBe('POINT(1 2)');
     } finally {
       await plain.end();
+    }
+  });
+
+  it('seeds the manual detector (F1.5 11.2)', async () => {
+    const manual = await new PgDetectorRegistry(createDatabase(pool)).find('manual');
+
+    expect(manual).toMatchObject({ id: 'manual', kind: 'manual', version: 1 });
+    expect(manual?.outputSchema).toMatchObject({ type: 'object', additionalProperties: true });
+  });
+
+  it('seeds only output schemas within the supported subset (F1.5 11.2)', async () => {
+    const { rows } = await pool.query<{ id: string; schema: unknown }>(
+      'SELECT id, output_schema AS schema FROM detector',
+    );
+
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect({ id: row.id, issues: checkDetectorSchema(row.schema) }).toEqual({
+        id: row.id,
+        issues: [],
+      });
     }
   });
 

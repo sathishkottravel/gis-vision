@@ -71,9 +71,9 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 11. F1.5 Detector registry
 
-- [ ] 11.1 Define the supported JSON Schema subset and a checker in `packages/schemas`; verify unit tests accept conforming schemas and reject unsupported constructs (e.g. `$ref`, nested objects)
-- [ ] 11.2 Seed the `manual` detector through a migration (output schema: free-form attributes object) and implement the `DetectorRegistry` backed by the `detector` table; verify integration tests that `manual` exists after migrating a fresh DB and its schema passes the subset checker
-- [ ] 11.3 Implement `GET /detectors` and `GET /detectors/:id/schema`; verify integration tests for the list, the known schema and 404
+- [x] 11.1 Define the supported JSON Schema subset and a checker in `packages/schemas`; verify unit tests accept conforming schemas and reject unsupported constructs (e.g. `$ref`, nested objects)
+- [x] 11.2 Seed the `manual` detector through a migration (output schema: free-form attributes object) and implement the `DetectorRegistry` backed by the `detector` table; verify integration tests that `manual` exists after migrating a fresh DB and its schema passes the subset checker
+- [x] 11.3 Implement `GET /detectors` and `GET /detectors/:id/schema`; verify integration tests for the list, the known schema and 404
 
 ## 12. F1.6 Detections
 
