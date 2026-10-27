@@ -13,17 +13,24 @@ export abstract class RequestError extends Error {
   constructor(
     readonly code: string,
     message: string,
+    /** The fields at fault, returned to the client as `error.issues`. */
+    readonly issues?: FieldIssue[],
   ) {
     super(message);
     this.name = new.target.name;
   }
 }
 
+function describeIssues(issues: FieldIssue[]): string {
+  return issues.map((issue) => issue.path || 'body').join(', ');
+}
+
+/** The request is malformed (400). */
 export class ValidationError extends RequestError {
   readonly statusCode = 400;
 
-  constructor(readonly issues: FieldIssue[]) {
-    super('invalid_request', `Invalid ${issues.map((issue) => issue.path || 'body').join(', ')}`);
+  constructor(issues: FieldIssue[]) {
+    super('invalid_request', `Invalid ${describeIssues(issues)}`, issues);
   }
 }
 
@@ -37,6 +44,15 @@ export class NotFoundError extends RequestError {
 
 export class ConflictError extends RequestError {
   readonly statusCode = 409;
+}
+
+/** The request is well formed but refers to or contains something the domain rejects (422). */
+export class UnprocessableError extends RequestError {
+  readonly statusCode = 422;
+
+  constructor(code: string, issues: FieldIssue[]) {
+    super(code, `Invalid ${describeIssues(issues)}`, issues);
+  }
 }
 
 /** Parses `value` with `schema`, or throws a `ValidationError` naming each failing field. */

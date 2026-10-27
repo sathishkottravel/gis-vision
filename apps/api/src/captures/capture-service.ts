@@ -7,7 +7,7 @@ import type { Database } from '../db/client.js';
 import { capture } from '../db/schema.js';
 import { ConflictError, NotFoundError } from '../errors.js';
 
-type CaptureRow = typeof capture.$inferSelect;
+export type CaptureRow = typeof capture.$inferSelect;
 
 export interface CaptureServiceOptions {
   db: Database;
@@ -23,6 +23,17 @@ export interface CreateCaptureResult {
 }
 
 const uuidSchema = z.uuid();
+
+/** Loads a capture, or throws a 404 for an unknown id or one that is not a UUID. */
+export async function findCapture(db: Database, id: string): Promise<CaptureRow> {
+  const [row] = uuidSchema.safeParse(id).success
+    ? await db.select().from(capture).where(eq(capture.id, id))
+    : [];
+  if (!row) {
+    throw new NotFoundError(`Capture ${id} does not exist`);
+  }
+  return row;
+}
 
 /** Fingerprint of a create request, stored with its idempotency key to detect reuse. */
 function requestHash(input: CreateCaptureRequest): string {
@@ -147,13 +158,7 @@ export class CaptureService {
   }
 
   private async find(id: string): Promise<CaptureRow> {
-    const [row] = uuidSchema.safeParse(id).success
-      ? await this.options.db.select().from(capture).where(eq(capture.id, id))
-      : [];
-    if (!row) {
-      throw new NotFoundError(`Capture ${id} does not exist`);
-    }
-    return row;
+    return findCapture(this.options.db, id);
   }
 
   private async withImageUrl(row: CaptureRow): Promise<Capture> {

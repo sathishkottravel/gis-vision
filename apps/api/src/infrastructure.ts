@@ -6,6 +6,8 @@ import type { AppDeps } from './app.js';
 import { CaptureService } from './captures/capture-service.js';
 import type { Config } from './config.js';
 import { createDatabase, poolConfig, type Database } from './db/client.js';
+import { AttributeValidator } from './detections/attribute-validator.js';
+import { DetectionService } from './detections/detection-service.js';
 import { PgDetectorRegistry } from './detectors/detector-registry.js';
 import { databaseCheck, objectStorageCheck } from './health/checks.js';
 import type { HealthCheck } from './health/health.js';
@@ -45,6 +47,7 @@ export function createInfrastructure(config: Config): Infrastructure {
 
 /** Wires configuration and infrastructure into `buildApp` dependencies (server and integration tests). */
 export function createAppDeps(config: Config, infra: Infrastructure): AppDeps {
+  const registry = new PgDetectorRegistry(infra.db);
   return {
     healthChecks: infra.healthChecks,
     healthCheckTimeoutMs: config.HEALTH_CHECK_TIMEOUT_MS,
@@ -57,6 +60,13 @@ export function createAppDeps(config: Config, infra: Infrastructure): AppDeps {
       }),
       maxUploadBytes: config.UPLOAD_MAX_BYTES,
     },
-    detectors: { registry: new PgDetectorRegistry(infra.db) },
+    detectors: { registry },
+    detections: {
+      service: new DetectionService({
+        db: infra.db,
+        registry,
+        validator: new AttributeValidator(),
+      }),
+    },
   };
 }
