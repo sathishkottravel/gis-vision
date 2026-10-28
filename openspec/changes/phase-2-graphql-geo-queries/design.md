@@ -36,7 +36,7 @@ See `proposal.md` (Why) and the specs (`graphql-api`, `geo-temporal-query`) for 
 
 ## Decisions
 
-### D1. Pothos core + plugin-relay + per-request DataLoaders on Drizzle 0.45, not plugin-drizzle
+### D1. Pothos core + per-request DataLoaders on Drizzle 0.45, not plugin-drizzle
 `@pothos/plugin-drizzle` 0.20 requires `drizzle-orm >= 1.0.0-rc.2`. That is a pre-release, and it changes the relational query API and drizzle-kit too. The schema is instead built with `@pothos/core`, with small hand-written forward-only connection types (D8). Relations are batched by plain `dataloader` instances created per request in the GraphQL context (D5), and resolvers call plain Drizzle queries. Batching is then explicit and testable, which is what F2.2 must demonstrate anyway. (F2.1 also installed `@pothos/plugin-dataloader`; F2.2 removed it, because the explicit context loaders cover the same batching with a visible per-request lifecycle.) F2.3 likewise removed `@pothos/plugin-relay`: its `t.connection` always adds `before`/`last` arguments and backward `PageInfo` fields, but this API pages forward only.
 - *Alternative:* upgrade to drizzle-orm 1.0 RC as an extra feature (F2.0) and use plugin-drizzle's automatic relation loading. Rejected for now: it puts a pre-release ORM under every existing table and migration. Revisit when drizzle-orm 1.0 is stable.
 - *Alternative:* SDL-first with hand-written resolvers. Rejected: it loses the type safety between resolvers and schema that design D3 of Phase 0+1 chose Pothos for.
