@@ -1,0 +1,5 @@
+# Override for the integration tests (src/*.int.test.ts): never restart, so a failing container
+# surfaces immediately. Ports and passwords come from the test's environment.
+services:
+  db:
+    restart: 'no'

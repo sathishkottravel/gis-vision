@@ -1,0 +1,42 @@
+# Database host for Deploy v0 (design D2). On the droplet: `cp .env.example .env`, fill in the
+# passwords, then `docker compose up -d`. Images are pinned by tag and digest.
+name: gis-vision-droplet
+
+services:
+  db:
+    image: postgis/postgis:17-3.6@sha256:5cf98659a260df8b9a5123ea9a9150e317c34d8669045f0f937941c6dadb1f64
+    restart: unless-stopped
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+      - -c
+      - hba_file=/etc/postgresql/pg_hba.conf
+    environment:
+      # Bootstrap superuser: logs in only through the container's socket (pg_hba.conf).
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?set in .env}
+      # Read once by initdb/10-roles.sh when the volume is created.
+      GIS_OWNER_PASSWORD: ${GIS_OWNER_PASSWORD:?set in .env}
+      GIS_APP_PASSWORD: ${GIS_APP_PASSWORD:?set in .env}
+      GIS_READONLY_PASSWORD: ${GIS_READONLY_PASSWORD:?set in .env}
+    # Loopback only: reached for migrations through `ssh -L 5432:127.0.0.1:5432`.
+    # Docker-published ports bypass ufw, so nothing but the pooler may bind all interfaces.
+    ports:
+      - '127.0.0.1:${DB_HOST_PORT:-5432}:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      # Replaces the image's own init script, which would install PostGIS into `public`.
+      - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # As the postgres OS user, so the socket's peer rule accepts it without logging failures.
+      test: ['CMD', 'gosu', 'postgres', 'pg_isready', '-d', 'gis_vision']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  db-data:
