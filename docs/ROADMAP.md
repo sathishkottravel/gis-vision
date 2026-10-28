@@ -2,7 +2,7 @@
 
 gis-vision is built in phases. Each phase is **one OpenSpec change** in `openspec/changes/`, and each change is applied **one feature at a time** (`/opsx:apply <change> only F<id>`). Every feature gets its own branch and PR, ships with its own tests and leaves CI green before the next feature starts. A phase is planned in detail (specs, design, tasks) only once the previous phase is archived; until then its change is a skeleton holding only `proposal.md`.
 
-The source of truth for each phase is its change's `proposal.md`. This document is the durable overview; the milestones table matches the one in [`bootstrap-geo-detection-service/proposal.md`](../openspec/changes/bootstrap-geo-detection-service/proposal.md#milestones).
+The source of truth for each phase is its change's `proposal.md`. This document is the durable overview; the milestones table matches the one in [`bootstrap-geo-detection-service/proposal.md`](../openspec/changes/archive/2026-10-28-bootstrap-geo-detection-service/proposal.md#milestones).
 
 ## Milestones
 
@@ -21,17 +21,17 @@ The source of truth for each phase is its change's `proposal.md`. This document 
 
 ## Changes
 
-| Phase | OpenSpec change                                                                          | State                |
-| ----- | ---------------------------------------------------------------------------------------- | -------------------- |
-| 0+1   | [`bootstrap-geo-detection-service`](../openspec/changes/bootstrap-geo-detection-service) | planned, in progress |
-| 2     | [`phase-2-graphql-geo-queries`](../openspec/changes/phase-2-graphql-geo-queries)         | skeleton             |
-| 2.5   | [`phase-2-5-deploy-v0`](../openspec/changes/phase-2-5-deploy-v0)                         | skeleton             |
-| 3     | [`phase-3-schema-driven-ui`](../openspec/changes/phase-3-schema-driven-ui)               | skeleton             |
-| 4     | [`phase-4-async-processing`](../openspec/changes/phase-4-async-processing)               | skeleton             |
-| 5     | [`phase-5-cv-worker`](../openspec/changes/phase-5-cv-worker)                             | skeleton             |
-| 6     | [`phase-6-caching-performance`](../openspec/changes/phase-6-caching-performance)         | skeleton             |
-| 7     | [`phase-7-iac-production-deploy`](../openspec/changes/phase-7-iac-production-deploy)     | skeleton             |
-| 8     | [`phase-8-hardening`](../openspec/changes/phase-8-hardening)                             | skeleton             |
+| Phase | OpenSpec change                                                                                             | State                                                                       |
+| ----- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 0+1   | [`bootstrap-geo-detection-service`](../openspec/changes/archive/2026-10-28-bootstrap-geo-detection-service) | done, archived 2026-10-28 (specs in [`openspec/specs/`](../openspec/specs)) |
+| 2     | [`phase-2-graphql-geo-queries`](../openspec/changes/phase-2-graphql-geo-queries)                            | skeleton                                                                    |
+| 2.5   | [`phase-2-5-deploy-v0`](../openspec/changes/phase-2-5-deploy-v0)                                            | skeleton                                                                    |
+| 3     | [`phase-3-schema-driven-ui`](../openspec/changes/phase-3-schema-driven-ui)                                  | skeleton                                                                    |
+| 4     | [`phase-4-async-processing`](../openspec/changes/phase-4-async-processing)                                  | skeleton                                                                    |
+| 5     | [`phase-5-cv-worker`](../openspec/changes/phase-5-cv-worker)                                                | skeleton                                                                    |
+| 6     | [`phase-6-caching-performance`](../openspec/changes/phase-6-caching-performance)                            | skeleton                                                                    |
+| 7     | [`phase-7-iac-production-deploy`](../openspec/changes/phase-7-iac-production-deploy)                        | skeleton                                                                    |
+| 8     | [`phase-8-hardening`](../openspec/changes/phase-8-hardening)                                                | skeleton                                                                    |
 
 ## Deployment decision
 
