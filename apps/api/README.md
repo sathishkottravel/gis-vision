@@ -188,11 +188,11 @@ curl -s localhost:3000/graphql -H 'content-type: application/json' -d '{"query":
 # {"data":{"detectors":[{"id":"manual","kind":"manual"}]}}
 ```
 
-Example queries (paste into GraphiQL; replace the id with one from `GET /captures`):
+Example queries (paste into GraphiQL and pick one with the run button; for `Capture`, set `{ "id": "<capture id>" }` in the Variables pane, with an id from `GET /captures`):
 
 ```graphql
 # Every detector and the JSON Schema of its attributes
-{
+query Detectors {
   detectors {
     id
     name
@@ -243,7 +243,7 @@ query Capture($id: ID!) {
 
 ```graphql
 # Detections in a box around Berlin, with where each location came from
-{
+query DetectionsInBox {
   detections(filter: { bbox: { west: 13.3, south: 52.4, east: 13.5, north: 52.6 } }, first: 20) {
     edges {
       node {
@@ -263,7 +263,7 @@ query Capture($id: ID!) {
 }
 
 # Detections within 500 m of a point, from the manual detector only
-{
+query DetectionsNear {
   detections(
     filter: {
       near: { center: { type: "Point", coordinates: [13.4, 52.5] }, radiusMeters: 500 }
@@ -280,7 +280,7 @@ query Capture($id: ID!) {
 }
 
 # Captures across the antimeridian (Fiji)
-{
+query CapturesAcrossAntimeridian {
   captures(filter: { bbox: { west: 177, south: -19, east: -179, north: -16 } }) {
     edges {
       node {
