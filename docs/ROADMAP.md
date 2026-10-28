@@ -24,8 +24,8 @@ The source of truth for each phase is its change's `proposal.md`. This document 
 | Phase | OpenSpec change                                                                                             | State                                                                       |
 | ----- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | 0+1   | [`bootstrap-geo-detection-service`](../openspec/changes/archive/2026-10-28-bootstrap-geo-detection-service) | done, archived 2026-10-28 (specs in [`openspec/specs/`](../openspec/specs)) |
-| 2     | [`phase-2-graphql-geo-queries`](../openspec/changes/phase-2-graphql-geo-queries)                            | skeleton                                                                    |
-| 2.5   | [`phase-2-5-deploy-v0`](../openspec/changes/phase-2-5-deploy-v0)                                            | skeleton                                                                    |
+| 2     | [`phase-2-graphql-geo-queries`](../openspec/changes/archive/2026-10-28-phase-2-graphql-geo-queries)         | done, archived 2026-10-28 (specs in [`openspec/specs/`](../openspec/specs)) |
+| 2.5   | [`phase-2-5-deploy-v0`](../openspec/changes/phase-2-5-deploy-v0)                                            | planned                                                                     |
 | 3     | [`phase-3-schema-driven-ui`](../openspec/changes/phase-3-schema-driven-ui)                                  | skeleton                                                                    |
 | 4     | [`phase-4-async-processing`](../openspec/changes/phase-4-async-processing)                                  | skeleton                                                                    |
 | 5     | [`phase-5-cv-worker`](../openspec/changes/phase-5-cv-worker)                                                | skeleton                                                                    |
@@ -38,7 +38,7 @@ The source of truth for each phase is its change's `proposal.md`. This document 
 - **API, uploads, web:** AWS serverless. The API runs on Lambda behind an HTTP API Gateway, images go to S3, and the static web app is served from S3 + CloudFront. Files live in `deploy/aws/`.
 - **Database:** a self-hosted PostGIS container on a DigitalOcean droplet with PgBouncer, pgAdmin (SSH tunnel only), `pg_cron` cleanup, hardening and backups. Files live in `deploy/droplet/`, separate from the AWS stack.
 - **Consequences for the core:** uploads are presigned (Lambda caps request bodies at about 6MB), so image bytes never pass through the API. Everything else stays host-agnostic behind ports (BlobStore, JobQueue, Cache).
-- **Still open (Phase 2.5 planning):** Lambda has no static outbound IP, so the droplet can't allowlist it cheaply. Default: TLS-only pooler port, strong credentials, fail2ban and connection limits; alternative: VPC + NAT (about $32/mo). Droplet size and region.
+- **Resolved in Phase 2.5 planning (design D1):** Lambda has no static outbound IP, so it reaches the droplet over the public internet through a TLS-only pooler port with SCRAM credentials, fail2ban and connection limits (VPC + NAT, about $32/mo, stays the upgrade path). AWS `eu-central-1` with a `s-1vcpu-1gb` droplet in DigitalOcean `fra1`.
 
 ## Phase 0: Scaffold
 
