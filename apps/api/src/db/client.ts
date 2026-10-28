@@ -1,3 +1,4 @@
+import type { Logger } from 'drizzle-orm';
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type pg from 'pg';
 import { detection } from './detection.js';
@@ -24,6 +25,11 @@ const schema = { ...managed, detection };
 
 export type Database = NodePgDatabase<typeof schema>;
 
-export function createDatabase(pool: pg.Pool): Database {
-  return drizzle({ client: pool, schema });
+export interface DatabaseOptions {
+  /** Sees every SQL statement Drizzle sends, e.g. to count queries in tests. */
+  logger?: Logger;
+}
+
+export function createDatabase(pool: pg.Pool, options: DatabaseOptions = {}): Database {
+  return drizzle({ client: pool, schema, ...(options.logger ? { logger: options.logger } : {}) });
 }

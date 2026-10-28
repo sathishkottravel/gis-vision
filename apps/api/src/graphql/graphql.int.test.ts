@@ -1,6 +1,7 @@
 import { GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../app.js';
+import type { DataContext } from './context.js';
 import { createAppDeps, createInfrastructure, type Infrastructure } from '../infrastructure.js';
 import {
   buildIntegrationApp,
@@ -30,31 +31,37 @@ describe('GraphQL endpoint (F2.1)', () => {
 
   describe('serving queries (1.2)', () => {
     it('answers a query with 200 and data', async () => {
-      const res = await post('{ __typename ping }');
+      const res = await post('{ __typename detectors { id } }');
+      const body = res.json<{ data: { __typename: string; detectors: { id: string }[] } }>();
 
       expect(res.statusCode).toBe(200);
-      expect(res.json()).toEqual({ data: { __typename: 'Query', ping: 'pong' } });
+      expect(body.data.__typename).toBe('Query');
+      expect(body.data.detectors).toContainEqual({ id: 'manual' });
     });
 
     it('accepts variables and an operation name', async () => {
       const res = await ctx.app.inject({
         method: 'POST',
         url: '/graphql',
-        payload: { query: 'query Check { ping }', operationName: 'Check', variables: {} },
+        payload: {
+          query: 'query Check($id: ID!) { detector(id: $id) { id kind } }',
+          operationName: 'Check',
+          variables: { id: 'manual' },
+        },
       });
 
-      expect(res.json()).toEqual({ data: { ping: 'pong' } });
+      expect(res.json()).toEqual({ data: { detector: { id: 'manual', kind: 'manual' } } });
     });
 
     it('reports a syntax error without data', async () => {
-      const body = (await post('{ ping ')).json<GraphQLBody>();
+      const body = (await post('{ detectors { id ')).json<GraphQLBody>();
 
       expect(body.data).toBeUndefined();
       expect(body.errors?.[0]?.message).toMatch(/Syntax Error/);
     });
 
     it('rejects a mutation, because the schema is read-only', async () => {
-      const body = (await post('mutation { ping }')).json<GraphQLBody>();
+      const body = (await post('mutation { detectors { id } }')).json<GraphQLBody>();
 
       // Rejected before any resolver runs: no data (`null` at execution time), one error.
       expect(body.data ?? null).toBeNull();
@@ -65,7 +72,7 @@ describe('GraphQL endpoint (F2.1)', () => {
       const res = await ctx.app.inject({
         method: 'POST',
         url: '/graphql',
-        payload: [{ query: '{ ping }' }, { query: '{ ping }' }],
+        payload: [{ query: '{ detectors { id } }' }, { query: '{ detectors { id } }' }],
       });
 
       expect(res.statusCode).toBeGreaterThanOrEqual(400);
@@ -112,10 +119,10 @@ describe('GraphQL endpoint (F2.1)', () => {
         const res = await app.inject({
           method: 'POST',
           url: '/graphql',
-          payload: { query: '{ ping }' },
+          payload: { query: '{ detector(id: "manual") { id } }' },
         });
 
-        expect(res.json()).toEqual({ data: { ping: 'pong' } });
+        expect(res.json()).toEqual({ data: { detector: { id: 'manual' } } });
       });
     });
   });
@@ -143,7 +150,12 @@ describe('GraphQL endpoint (F2.1)', () => {
       app = await buildApp({
         healthChecks: [],
         healthCheckTimeoutMs: 1000,
-        graphql: { schema: failingSchema, graphiql: false },
+        // The failing schema reads nothing from the data context.
+        graphql: {
+          schema: failingSchema,
+          graphiql: false,
+          createContext: () => ({}) as DataContext,
+        },
         logger: { level: 'error', stream: { write: (line: string) => logLines.push(line) } },
       });
     });

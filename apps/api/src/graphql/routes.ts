@@ -1,13 +1,15 @@
 import type { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
 import type { GraphQLSchema } from 'graphql';
 import { createYoga } from 'graphql-yoga';
-import type { GraphQLContext } from './context.js';
+import type { DataContext, GraphQLContext } from './context.js';
 import { useErrorMapping } from './error-mapping.js';
 
 export interface GraphQLRouteOptions {
   schema: GraphQLSchema;
   /** Serve GraphiQL on `GET /graphql`; off in production (design D2). */
   graphiql: boolean;
+  /** Builds the per-request data context: database, blob store and fresh loaders. */
+  createContext: () => DataContext;
 }
 
 interface ServerContext {
@@ -26,7 +28,11 @@ export const graphqlRoutes: FastifyPluginCallback<GraphQLRouteOptions> = (app, o
     // Masking and logging happen in `useErrorMapping`, which can see the request.
     maskedErrors: false,
     logging: app.log,
-    context: ({ req }): GraphQLContext => ({ log: req.log, requestId: req.id }),
+    context: ({ req }): GraphQLContext => ({
+      ...opts.createContext(),
+      log: req.log,
+      requestId: req.id,
+    }),
     plugins: [useErrorMapping()],
   });
 

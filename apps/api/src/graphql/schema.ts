@@ -1,15 +1,12 @@
 import { lexicographicSortSchema, printSchema, type GraphQLSchema } from 'graphql';
 import { builder } from './builder.js';
 import './scalars.js';
+// Each type module adds its object type and root fields (`builder.queryFields`).
+import './types/capture.js';
+import './types/detection.js';
+import './types/detector.js';
 
-builder.queryType({
-  fields: (t) => ({
-    ping: t.string({
-      description: 'Liveness check for the GraphQL endpoint; always "pong".',
-      resolve: () => 'pong',
-    }),
-  }),
-});
+builder.queryType({});
 
 /** The read-only schema (no Mutation type): writes stay on REST. */
 export const schema: GraphQLSchema = builder.toSchema();
