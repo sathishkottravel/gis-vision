@@ -5,6 +5,7 @@ import './scalars.js';
 import './types/capture.js';
 import './types/detection.js';
 import './types/detector.js';
+import './types/search.js';
 
 builder.queryType({});
 

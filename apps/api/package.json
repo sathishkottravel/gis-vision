@@ -17,7 +17,6 @@
     "@aws-sdk/s3-request-presigner": "^3.1156.0",
     "@gis-vision/schemas": "workspace:*",
     "@pothos/core": "~4.15.1",
-    "@pothos/plugin-relay": "~4.8.1",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "dataloader": "~2.2.3",
