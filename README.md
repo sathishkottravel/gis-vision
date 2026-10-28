@@ -88,6 +88,21 @@ One plain page (`apps/web`, Vite + React) exercises the whole Phase 1 flow:
 2. **Upload a capture:** choose a JPEG, PNG or WebP image, optionally enter latitude and longitude, and press _Upload_. The page creates the capture, PUTs the image straight to RustFS through the presigned URL and completes it; the capture then appears in the list with a thumbnail.
 3. **Annotate:** open a capture, enter a label and a bounding box in pixels (plus optional confidence and attributes JSON) and press _Add detection_. The detection is listed and drawn on the image. Invalid input shows the API's error with each failing field, e.g. `bbox.w` for a width of 0.
 
+**Map page** (`#/map`, the _Map_ link in the header) shows detections in the visible area on an [OpenFreeMap](https://openfreemap.org) basemap (OSM data, no API key; set `VITE_MAP_STYLE_URL` to use another MapLibre style):
+
+- Panning or zooming refetches through GraphQL `detections(filter: { bbox })` 300 ms after the map stops moving. Views across the antimeridian work, and a view showing the whole world sends no box.
+- Pink points have their own location; blue points use their capture's location. Clicking one shows its label, detector and observation time, with a link to the capture.
+- _Observed_ picks the time range: 24 h, 7 days, 30 days (the default), all, or custom from/to.
+- At most 500 points are shown; when more match, a notice says so.
+
+To have something to look at, seed demo data (never in production; a re-run replaces the previous demo set and leaves other data alone):
+
+```sh
+pnpm --filter @gis-vision/api db:seed-demo
+```
+
+It creates 40 ready captures with generated PNG thumbnails around Berlin, New York and Taveuni (Fiji, on the antimeridian), and 200 detections, some with their own point and some using the capture's. Most are from the past six months, with a few in the last day and week; each city also has a capture from three years back, whose detections only show with _All_ (they are in the `detection_default` partition).
+
 The browser uploads to RustFS directly, so the bucket allows the page's origin (`WEB_ORIGIN` in `.env`, default `http://localhost:5173`); `rustfs-init` sets that CORS rule on every `docker compose up`. Set `API_URL` to proxy to an API on another address.
 
 ### Running tests
