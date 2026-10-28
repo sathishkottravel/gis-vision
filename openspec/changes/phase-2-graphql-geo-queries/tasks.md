@@ -25,9 +25,9 @@
 
 ## 4. F2.4 Temporal filters
 
-- [ ] 4.1 Add `timeRangeSchema` (half-open, either bound optional, `from < to`) to `packages/schemas`, and apply `observedFrom`/`observedTo` to every branch of the detection search and `capturedFrom`/`capturedTo` to the capture search, combined with the spatial and `detectorId` filters (logical AND); verify unit tests for the schema, and integration tests for the month-boundary, three-years-ago, empty-range and space+time+detector scenarios
-- [ ] 4.2 Add the partition-pruning integration test (design D7): `EXPLAIN (FORMAT JSON)` of the search's own query object collects relation names and expects only that month's partition (plus `capture` for the fallback branch) for a one-month range, and only `detection_default` for a month five years back; verify it passes, and fails when the time predicate is removed from one branch
-- [ ] 4.3 Document the time filters and the pruning guarantee in the API README; verify the example query runs in GraphiQL
+- [x] 4.1 Add `timeRangeSchema` (half-open, either bound optional, `from < to`) to `packages/schemas`, and apply `observedFrom`/`observedTo` to every branch of the detection search and `capturedFrom`/`capturedTo` to the capture search, combined with the spatial and `detectorId` filters (logical AND); verify unit tests for the schema, and integration tests for the month-boundary, three-years-ago, empty-range and space+time+detector scenarios
+- [x] 4.2 Add the partition-pruning integration test (design D7): `EXPLAIN (FORMAT JSON)` of the search's own query object collects relation names and expects only that month's partition (plus `capture` for the fallback branch) for a one-month range, and only `detection_default` for a month five years back; verify it passes, and fails when the time predicate is removed from one branch
+- [x] 4.3 Document the time filters and the pruning guarantee in the API README; verify the example query runs in GraphiQL
 
 ## 5. F2.5 Pagination
 
