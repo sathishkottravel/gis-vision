@@ -1,0 +1,14 @@
+{
+  "name": "@gis-vision/deploy-droplet",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1",
+    "pg": "^8.23.1",
+    "testcontainers": "^12.2.1"
+  }
+}
