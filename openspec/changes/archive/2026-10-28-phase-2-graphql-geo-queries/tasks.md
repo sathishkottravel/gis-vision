@@ -45,7 +45,7 @@
 
 ## 7. Phase 2 end-to-end check
 
-- [ ] 7.1 From a clean clone, follow the README (Compose, migrate, seed demo data, start the API and web), open the map, pan and change the time range, open a capture from a popup, and run the README's GraphQL examples; verify `pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration` are all green and CI passes
+- [x] 7.1 From a clean clone, follow the README (Compose, migrate, seed demo data, start the API and web), open the map, pan and change the time range, open a capture from a popup, and run the README's GraphQL examples; verify `pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration` are all green and CI passes
 
 ## Workflow follow-up
 
