@@ -66,7 +66,8 @@ describe('droplet connection pooling and TLS (F2.5.2)', () => {
       ssl: { ca: stack.ca, rejectUnauthorized: true },
     });
 
-    await expect(client.connect()).rejects.toMatchObject({ code: '28P01' });
+    // PgBouncer ends the SCRAM exchange itself; node-pg reports it as a SASL failure.
+    await expect(client.connect()).rejects.toThrow(/SASL authentication failed|password/);
   });
 
   it('runs 50 concurrent clients on at most the pool size of server connections', async () => {
