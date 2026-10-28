@@ -195,7 +195,7 @@ describe('temporal search (F2.4)', () => {
         },
         100,
       );
-      const ids = page.rows.map((row) => row.id);
+      const ids = page.hits.map((hit) => hit.row.id);
 
       expect(ids).toContain(early);
       expect(ids).not.toContain(late);
