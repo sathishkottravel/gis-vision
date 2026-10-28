@@ -1,6 +1,6 @@
 # @gis-vision/api
 
-Fastify REST API. See the [root README](../../README.md) for setup, and the OpenSpec [design](../../openspec/changes/bootstrap-geo-detection-service/design.md) for the decisions referenced below.
+Fastify REST API. See the [root README](../../README.md) for setup, and the OpenSpec [design](../../openspec/changes/archive/2026-10-28-bootstrap-geo-detection-service/design.md) for the decisions referenced below.
 
 ## Capture upload flow
 
