@@ -38,9 +38,9 @@
 ## 6. F2.6 Map page
 
 - [x] 6.1 Add `src/db/seed-demo.ts` and the `db:seed-demo` script (design D12: about 40 ready captures with generated PNGs, about 200 detections with and without own points, some in the default partition, re-runnable, refuses in production); verify that running it twice against Compose leaves one demo set and that `GET /captures` shows thumbnails
-- [ ] 6.2 Add `maplibre-gl` to `apps/web`, a `#/map` route with a nav link, and the OpenFreeMap basemap (overridable with `VITE_MAP_STYLE_URL`) (design D11); verify `pnpm --filter web build` succeeds and, manually, the map renders with attribution
-- [ ] 6.3 Fetch detections for the normalized viewport on `moveend` (300 ms debounce, abort the previous request, antimeridian and whole-world handling, at most 500 points with a notice) via `src/graphql.ts`, and render them as a circle layer styled by `locationSource`, with a popup linking to `#/captures/:id`; verify unit tests for bounds normalization and, manually against the demo seed, that panning updates the points and the popup link opens the capture
-- [ ] 6.4 Add the time-range control (24 h, 7 days, 30 days, all, custom) that refetches; verify manually that narrowing the range removes older points and "all" shows the points in the default partition
+- [x] 6.2 Add `maplibre-gl` to `apps/web`, a `#/map` route with a nav link, and the OpenFreeMap basemap (overridable with `VITE_MAP_STYLE_URL`) (design D11); verify `pnpm --filter web build` succeeds and, manually, the map renders with attribution
+- [x] 6.3 Fetch detections for the normalized viewport on `moveend` (300 ms debounce, abort the previous request, antimeridian and whole-world handling, at most 500 points with a notice) via `src/graphql.ts`, and render them as a circle layer styled by `locationSource`, with a popup linking to `#/captures/:id`; verify unit tests for bounds normalization and, manually against the demo seed, that panning updates the points and the popup link opens the capture
+- [x] 6.4 Add the time-range control (24 h, 7 days, 30 days, all, custom) that refetches; verify manually that narrowing the range removes older points and "all" shows the points in the default partition
 - [x] 6.5 Document the map page and the demo seed in the root README ("Run the web app"); verify the documented steps work as written
 
 ## 7. Phase 2 end-to-end check
