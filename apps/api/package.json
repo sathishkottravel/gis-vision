@@ -9,16 +9,23 @@
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio --config=drizzle.studio.config.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "graphql:schema": "tsx src/graphql/print-schema.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1156.0",
     "@aws-sdk/s3-request-presigner": "^3.1156.0",
     "@gis-vision/schemas": "workspace:*",
+    "@pothos/core": "~4.15.1",
+    "@pothos/plugin-dataloader": "~4.4.6",
+    "@pothos/plugin-relay": "~4.8.1",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
+    "dataloader": "~2.2.3",
     "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.7",
+    "graphql": "~16.14.2",
+    "graphql-yoga": "5.24.5",
     "pg": "^8.23.1",
     "zod": "^4.6.7"
   },

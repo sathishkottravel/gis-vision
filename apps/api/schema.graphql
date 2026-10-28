@@ -1,0 +1,17 @@
+"""
+ISO 8601 date-time with offset, returned in UTC, e.g. 2026-03-01T10:00:00.000Z
+"""
+scalar DateTime
+
+"""
+GeoJSON Point in WGS84: { "type": "Point", "coordinates": [longitude, latitude] }
+"""
+scalar GeoJSONPoint
+
+"""Any JSON value, e.g. detection attributes or a detector output schema"""
+scalar JSON
+
+type Query {
+  """Liveness check for the GraphQL endpoint; always "pong"."""
+  ping: String!
+}

@@ -2,3 +2,4 @@ pnpm-lock.yaml
 openspec/
 .claude/
 docs/*.svg
+apps/api/schema.graphql

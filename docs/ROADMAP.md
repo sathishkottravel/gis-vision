@@ -71,7 +71,7 @@ Change: `bootstrap-geo-detection-service` (task groups 7-13).
 
 Change: `phase-2-graphql-geo-queries`.
 
-- **F2.1 GraphQL server:** GraphQL Yoga in the Fastify app, code-first schema with Pothos + `plugin-drizzle`.
+- **F2.1 GraphQL server:** GraphQL Yoga in the Fastify app, code-first schema with Pothos (`plugin-relay`, `plugin-dataloader`) over the existing Drizzle 0.45 queries. `plugin-drizzle` is not used because it needs the drizzle-orm 1.0 pre-release. Read-only, consistent errors, committed SDL.
 - **F2.2 Core types:** `Capture`, `Detection`, `Detector` with relations, a `GeoJSON` scalar, batched relation loading (no N+1, proven by a test).
 - **F2.3 Spatial queries:** bounding box and radius (`ST_DWithin`), falling back to the capture location.
 - **F2.4 Temporal filters:** time ranges on `observed_at`, with partition pruning verified by `EXPLAIN`.
