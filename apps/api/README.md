@@ -62,3 +62,19 @@ A detector is whatever records detections on a capture: a human (`manual`, seede
 - `GET /detectors/:id/schema` returns that detector's output schema (`application/schema+json`), or 404.
 
 Output schemas must stay within a subset that form generators (JSON Forms) can render: an object whose properties are strings, numbers, integers or booleans, enums of those, or arrays of them. `$ref`, nested objects and combinators such as `oneOf` are rejected; `checkDetectorSchema` in [`@gis-vision/schemas`](../../packages/schemas/src/detectors.ts) checks a schema and lists any violations. The `manual` schema allows free-form attributes (`additionalProperties: true`).
+
+## Detections
+
+A detection records what a detector found on a `ready` capture: a label, an optional confidence, a pixel bounding box, a location and time, and detector-specific `attributes`.
+
+- `POST /captures/:id/detections` with `detectorId`, `label`, `bbox` (`{x, y, w, h}` in pixels; `x`, `y` at least 0, `w`, `h` above 0) and optional `confidence` (0-1), `location` (GeoJSON Point), `observedAt` (ISO 8601 with offset) and `attributes` (default `{}`). Responds 201 with the detection.
+- `GET /captures/:id/detections` returns `{ items }` ordered by `observedAt`.
+- **Defaults:** without `observedAt`, the capture's `capturedAt` is used. Without `location`, none is stored and the response's `location` is the capture's (it may be `null`).
+- **Errors:** 400 for a malformed body (`error.issues[].path`, e.g. `bbox.w`), 404 for an unknown capture, 409 `capture_not_ready` while the upload is pending, and 422 for an unknown detector (`unknown_detector`, path `detectorId`) or attributes that violate the detector's output schema (`invalid_attributes`, paths like `attributes.state`). Attributes are checked with Ajv; compiled schemas are cached per detector version, so a detector's schema changes only with a new version.
+- Any observation time is accepted: detections are stored in monthly partitions, and times outside the pre-created months go to a default partition.
+
+```sh
+curl -s "localhost:3000/captures/$ID/detections" -H 'content-type: application/json' \
+  -d '{"detectorId":"manual","label":"stop-sign","bbox":{"x":10,"y":20,"w":40,"h":30},"attributes":{"note":"faded"}}'
+curl -s "localhost:3000/captures/$ID/detections"
+```

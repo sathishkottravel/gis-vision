@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify';
 import { captureRoutes, type CaptureRouteOptions } from './captures/routes.js';
+import { detectionRoutes, type DetectionRouteOptions } from './detections/routes.js';
 import { detectorRoutes, type DetectorRouteOptions } from './detectors/routes.js';
 import type { HealthCheck } from './health/health.js';
 import { healthRoute } from './health/route.js';
@@ -13,6 +14,8 @@ export interface AppDeps {
   captures?: CaptureRouteOptions;
   /** Detector registry routes; omitted by tests that only exercise `/health`. */
   detectors?: DetectorRouteOptions;
+  /** Detection routes; omitted by tests that only exercise `/health`. */
+  detections?: DetectionRouteOptions;
   /** Pino logger options; `false` disables logging (useful in tests). */
   logger?: FastifyServerOptions['logger'];
 }
@@ -38,6 +41,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   }
   if (deps.detectors) {
     await app.register(detectorRoutes, deps.detectors);
+  }
+  if (deps.detections) {
+    await app.register(detectionRoutes, deps.detections);
   }
 
   return app;

@@ -1,7 +1,7 @@
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
-import { RequestError, ValidationError } from '../errors.js';
+import { RequestError } from '../errors.js';
 
-/** Body of every error response. `issues` lists the failing fields of a 400. */
+/** Body of every error response. `issues` lists the failing fields of a 400 or 422. */
 export interface ErrorBody {
   error: { code: string; message: string; issues?: { path: string; message: string }[] };
 }
@@ -18,7 +18,7 @@ export function errorHandler(
 ): FastifyReply {
   if (error instanceof RequestError) {
     const body: ErrorBody = { error: { code: error.code, message: error.message } };
-    if (error instanceof ValidationError) {
+    if (error.issues) {
       body.error.issues = error.issues;
     }
     return reply.code(error.statusCode).send(body);

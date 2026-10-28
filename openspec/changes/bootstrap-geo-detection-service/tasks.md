@@ -77,10 +77,10 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 12. F1.6 Detections
 
-- [ ] 12.1 Add shared Zod schemas for detection input (bbox x,y >= 0, w,h > 0; confidence 0..1; optional GeoJSON Point and observation time); verify unit tests cover the 400 cases in the `detection-records` spec
-- [ ] 12.2 Implement attribute validation with Ajv against the detector's output schema (compiled and cached per detector version), returning 422 with paths; verify unit tests with a test detector whose schema has a `state` enum
-- [ ] 12.3 Implement `POST /captures/:id/detections` (404 missing, 409 pending, 422 unknown detector or invalid attributes, defaults for observation time and location from the capture); verify integration tests for each scenario
-- [ ] 12.4 Implement `GET /captures/:id/detections` (ordered by observation time, effective location as GeoJSON); verify integration tests including the month-boundary and old-observation scenarios
+- [x] 12.1 Add shared Zod schemas for detection input (bbox x,y >= 0, w,h > 0; confidence 0..1; optional GeoJSON Point and observation time); verify unit tests cover the 400 cases in the `detection-records` spec
+- [x] 12.2 Implement attribute validation with Ajv against the detector's output schema (compiled and cached per detector version), returning 422 with paths; verify unit tests with a test detector whose schema has a `state` enum
+- [x] 12.3 Implement `POST /captures/:id/detections` (404 missing, 409 pending, 422 unknown detector or invalid attributes, defaults for observation time and location from the capture); verify integration tests for each scenario
+- [x] 12.4 Implement `GET /captures/:id/detections` (ordered by observation time, effective location as GeoJSON); verify integration tests including the month-boundary and old-observation scenarios
 
 ## 13. F1.7 Minimal UI
 
