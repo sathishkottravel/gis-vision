@@ -167,3 +167,17 @@ curl -s "localhost:3000/captures/$ID/detections" -H 'content-type: application/j
   -d '{"detectorId":"manual","label":"stop-sign","bbox":{"x":10,"y":20,"w":40,"h":30},"attributes":{"note":"faded"}}'
 curl -s "localhost:3000/captures/$ID/detections"
 ```
+
+## GraphQL
+
+A read-only GraphQL endpoint sits next to the REST API (OpenSpec change `phase-2-graphql-geo-queries`). Queries only: creating captures, uploading and creating detections stay on REST, and a `mutation` is rejected.
+
+- **Endpoint:** `POST /graphql` with a JSON body `{ "query": "...", "variables": {...}, "operationName": "..." }` (`GET /graphql?query=...` works too). Batched operations (a JSON array) are not accepted.
+- **GraphiQL:** open `http://localhost:3000/graphql` in a browser (served outside production only; `NODE_ENV=production` turns it off). Through the web app's dev server it is `http://localhost:5173/api/graphql`.
+- **Errors:** standard GraphQL `errors`. Invalid arguments have `extensions.code: "BAD_USER_INPUT"` and `extensions.issues` (`[{ path, message }]`, like REST's `error.issues`); domain errors keep their REST code (e.g. `not_found`). Anything unexpected is returned as `"Unexpected error."` with `INTERNAL_SERVER_ERROR` and logged with the request id.
+- **Schema:** the SDL is committed as [`schema.graphql`](schema.graphql). After changing types, run `pnpm --filter @gis-vision/api graphql:schema`; a unit test fails while the file is out of date.
+
+```sh
+curl -s localhost:3000/graphql -H 'content-type: application/json' -d '{"query":"{ ping }"}'
+# {"data":{"ping":"pong"}}
+```

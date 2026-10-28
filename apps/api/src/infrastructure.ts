@@ -9,6 +9,7 @@ import { createDatabase, poolConfig, type Database } from './db/client.js';
 import { AttributeValidator } from './detections/attribute-validator.js';
 import { DetectionService } from './detections/detection-service.js';
 import { PgDetectorRegistry } from './detectors/detector-registry.js';
+import { schema } from './graphql/schema.js';
 import { databaseCheck, objectStorageCheck } from './health/checks.js';
 import type { HealthCheck } from './health/health.js';
 
@@ -68,5 +69,6 @@ export function createAppDeps(config: Config, infra: Infrastructure): AppDeps {
         validator: new AttributeValidator(),
       }),
     },
+    graphql: { schema, graphiql: config.NODE_ENV !== 'production' },
   };
 }

@@ -3,6 +3,7 @@ import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastif
 import { captureRoutes, type CaptureRouteOptions } from './captures/routes.js';
 import { detectionRoutes, type DetectionRouteOptions } from './detections/routes.js';
 import { detectorRoutes, type DetectorRouteOptions } from './detectors/routes.js';
+import { graphqlRoutes, type GraphQLRouteOptions } from './graphql/routes.js';
 import type { HealthCheck } from './health/health.js';
 import { healthRoute } from './health/route.js';
 import { errorHandler } from './http/error-handler.js';
@@ -16,6 +17,8 @@ export interface AppDeps {
   detectors?: DetectorRouteOptions;
   /** Detection routes; omitted by tests that only exercise `/health`. */
   detections?: DetectionRouteOptions;
+  /** The read-only GraphQL endpoint; omitted by tests that only exercise REST or `/health`. */
+  graphql?: GraphQLRouteOptions;
   /** Pino logger options; `false` disables logging (useful in tests). */
   logger?: FastifyServerOptions['logger'];
 }
@@ -44,6 +47,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   }
   if (deps.detections) {
     await app.register(detectionRoutes, deps.detections);
+  }
+  if (deps.graphql) {
+    await app.register(graphqlRoutes, deps.graphql);
   }
 
   return app;
