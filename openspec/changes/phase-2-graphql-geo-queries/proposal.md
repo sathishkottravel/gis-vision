@@ -54,7 +54,7 @@ None. REST behavior (`capture-ingest`, `detection-records`, `detector-registry`)
 - **`packages/schemas`:** shared Zod schemas for the bounding box, radius and time-range inputs.
 - **`apps/web`:** a map route next to the existing upload and annotation page.
 - **New dependencies:**
-  - `graphql`, `graphql-yoga`, `@pothos/core`, `@pothos/plugin-relay` and `dataloader` (API).
+  - `graphql`, `graphql-yoga`, `@pothos/core` and `dataloader` (API).
   - `maplibre-gl` (web).
   - The skeleton's `@pothos/plugin-drizzle` is **not** used: it needs a pre-release drizzle-orm 1.0 (see design D1).
 - **Docs:** API README (GraphQL section with example queries), root README (map page), and `docs/ROADMAP.md` (the F2.1 wording changes to drop plugin-drizzle).

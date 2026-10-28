@@ -224,6 +224,80 @@ query Capture($id: ID!) {
 }
 ```
 
+### Spatial search
+
+`detections(filter, first)` and `captures(filter, first)` return connections: `edges { node }` plus `pageInfo { hasNextPage }`. `first` is 1-100 (default 50). Cursors (`after`) follow in F2.5.
+
+- **Bounding box** (`bbox: { west, south, east, north }`, WGS84 degrees, edges included). `west > east` means the box crosses the antimeridian and covers `west..180` plus `-180..east`. `south` must not be north of `north`.
+- **Radius** (`near: { center: <GeoJSON Point>, radiusMeters }`): geodesic distance, boundary included, up to 50,000 m. Use either `bbox` or `near`, not both.
+- **Effective location:** detection filters match a detection's own point, or its capture's location when it has none (`locationSource` tells which). Detections with no location anywhere never match a spatial filter but are returned without one. `captures` filters on the capture's own location.
+- `detectorId` narrows detections to one detector. All given conditions apply together.
+- Invalid input is `BAD_USER_INPUT` with issue paths such as `filter.bbox.south`, `filter.near.radiusMeters` or `first`.
+
+```graphql
+# Detections in a box around Berlin, with where each location came from
+{
+  detections(filter: { bbox: { west: 13.3, south: 52.4, east: 13.5, north: 52.6 } }, first: 20) {
+    edges {
+      node {
+        label
+        observedAt
+        location
+        locationSource
+        capture {
+          id
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+    }
+  }
+}
+
+# Detections within 500 m of a point, from the manual detector only
+{
+  detections(
+    filter: {
+      near: { center: { type: "Point", coordinates: [13.4, 52.5] }, radiusMeters: 500 }
+      detectorId: "manual"
+    }
+  ) {
+    edges {
+      node {
+        label
+        location
+      }
+    }
+  }
+}
+
+# Captures across the antimeridian (Fiji)
+{
+  captures(filter: { bbox: { west: 177, south: -19, east: -179, north: -16 } }) {
+    edges {
+      node {
+        id
+        location
+      }
+    }
+  }
+}
+```
+
+**Checking index use.** The search runs as a `UNION ALL` of two branches: detections with their own point, and detections matched through their capture's location. That way each branch can use a spatial index: geometry GiST for boxes, the `geom::geography` GiST from migration `0004_geography-indexes` for radius. On a tiny table Postgres prefers sequential scans, so check on demo data, or force the choice in a psql session:
+
+```sql
+SET enable_seqscan = off;  -- only for this session, to see whether an index can serve the query
+EXPLAIN ANALYZE
+SELECT id FROM detection
+ WHERE geom IS NOT NULL
+   AND ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint(13.4, 52.5), 4326)::geography, 500);
+-- expect "Index Scan using detection_..._geom_idx1" (the per-partition copy of detection_geog_gist)
+```
+
+Run it with `docker compose exec db psql -U gis -d gis_vision`. Replace the `ST_DWithin` line with `geom && ST_MakeEnvelope(13.3, 52.4, 13.5, 52.6, 4326)` to check the bounding-box index (`..._geom_idx`).
+
 ```sh
 curl -s localhost:3000/graphql -H 'content-type: application/json' -d '{"query":"{ detectors { id kind } }"}'
 # {"data":{"detectors":[{"id":"manual","kind":"manual"}]}}

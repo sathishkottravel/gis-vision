@@ -29,6 +29,13 @@
       "when": 1793009865159,
       "tag": "0003_seed-manual-detector",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793197389752,
+      "tag": "0004_geography-indexes",
+      "breakpoints": true
     }
   ]
 }

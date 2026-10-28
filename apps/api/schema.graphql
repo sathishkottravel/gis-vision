@@ -8,6 +8,16 @@ type BoundingBox {
   y: Float!
 }
 
+"""
+WGS84 degrees, edges included. `west > east` crosses the antimeridian (west..180 and -180..east).
+"""
+input BoundingBoxInput {
+  east: Float!
+  north: Float!
+  south: Float!
+  west: Float!
+}
+
 """An uploaded image with its capture time and optional location."""
 type Capture {
   byteSize: Int!
@@ -23,6 +33,22 @@ type Capture {
   imageUrl: String
   location: GeoJSONPoint
   status: CaptureStatus!
+}
+
+type CaptureConnection {
+  edges: [CaptureEdge!]!
+  pageInfo: PageInfo!
+}
+
+type CaptureEdge {
+  node: Capture!
+}
+
+"""
+Spatial filters use the capture location; captures without one never match.
+"""
+input CaptureFilter {
+  bbox: BoundingBoxInput
 }
 
 enum CaptureStatus {
@@ -53,6 +79,24 @@ type Detection {
   location: GeoJSONPoint
   locationSource: LocationSource!
   observedAt: DateTime!
+}
+
+type DetectionConnection {
+  edges: [DetectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type DetectionEdge {
+  node: Detection!
+}
+
+"""
+All given conditions apply. Spatial filters use the effective location; at most one of `bbox` and `near`.
+"""
+input DetectionFilter {
+  bbox: BoundingBoxInput
+  detectorId: ID
+  near: NearInput
 }
 
 """
@@ -97,9 +141,38 @@ enum LocationSource {
   NONE
 }
 
+"""
+Geodesic distance from `center` in meters, boundary included (at most 50,000).
+"""
+input NearInput {
+  center: GeoJSONPoint!
+  radiusMeters: Float!
+}
+
+"""Where a page ends (forward pagination only)."""
+type PageInfo {
+  hasNextPage: Boolean!
+}
+
 type Query {
   """A capture by id; `null` if it does not exist or the id is not a UUID."""
   capture(id: ID!): Capture
+
+  """Captures matching the filter, newest first."""
+  captures(
+    filter: CaptureFilter
+
+    """Page size, 1-100 (default 50)."""
+    first: Int
+  ): CaptureConnection!
+
+  """Detections matching the filter, ordered by observation time, then id."""
+  detections(
+    filter: DetectionFilter
+
+    """Page size, 1-100 (default 50)."""
+    first: Int
+  ): DetectionConnection!
 
   """A detector by id; `null` if it does not exist."""
   detector(id: ID!): Detector
