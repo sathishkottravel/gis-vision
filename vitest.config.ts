@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import { configDefaults, defineConfig } from 'vitest/config';
 
-const sources = '{apps,packages}/*/src/**';
+const sources = '{apps,packages,deploy}/*/src/**';
 
 // graphql 16 ships CJS (`main`) and ESM (`module`) builds without an `exports` map. Vite would
 // pick the ESM build for our code while Node loads the CJS build for Pothos and Yoga, giving two
