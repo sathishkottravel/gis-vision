@@ -3,14 +3,20 @@ import {
   Map as MapLibreMap,
   NavigationControl,
   Popup,
+  setWorkerUrl,
   type GeoJSONSource,
   type MapLayerMouseEvent,
 } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchMapDetections, MAP_POINT_LIMIT, type MapDetection } from './graphql.js';
 import { normalizeBounds } from './map-bounds.js';
 import { observedRange, TIME_PRESETS, type TimeRange } from './time-range.js';
+
+// MapLibre derives its worker URL from its own module URL, which Vite's pre-bundling (dev)
+// and chunking (build) move; give it the worker file that Vite serves and emits instead.
+setWorkerUrl(workerUrl);
 
 // OpenFreeMap: OSM data, no API key (design D11). Points still render if the tiles fail.
 const STYLE_URL =
