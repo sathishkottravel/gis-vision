@@ -12,7 +12,7 @@ async function errorCode(run: () => Promise<unknown>): Promise<string | undefine
 }
 
 // Spec hosted-deployment, "Least-privilege database access"; design D3.
-describe('droplet database roles (F2.5.1)', () => {
+describe('droplet database roles (F2.5.1, TLS from F2.5.2)', () => {
   let stack: DropletStack;
 
   beforeAll(async () => {
@@ -108,6 +108,11 @@ describe('droplet database roles (F2.5.1)', () => {
 
   it('rejects the superuser over TCP', async () => {
     expect(await errorCode(() => stack.connect('postgres'))).toBe('28000');
+  });
+
+  // Spec hosted-deployment, "Verified TLS for database connections"; design D4.
+  it('refuses a plaintext connection to Postgres, even with the right password', async () => {
+    expect(await errorCode(() => stack.connect('gis_owner', { tls: false }))).toBe('28000');
   });
 
   it('publishes Postgres on the loopback interface only', () => {

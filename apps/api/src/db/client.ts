@@ -10,13 +10,22 @@ export const SEARCH_PATH = ['public', 'extensions'] as const;
 /**
  * Pool settings for every connection the app opens. The search path is set per
  * connection, so `ST_*` functions and `geometry` resolve unqualified even before
- * (or without) the database-level default that the first migration sets.
+ * (or without) the database-level default that the first migration sets. PgBouncer
+ * ignores this parameter (Deploy v0, design D5); the database-level default applies there.
+ *
+ * With `sslCa` (DATABASE_SSL_CA), connections use TLS and verify the server certificate,
+ * including its host name or IP address, against that CA.
  */
-export function poolConfig(databaseUrl: string, overrides: pg.PoolConfig = {}): pg.PoolConfig {
+export function poolConfig(
+  databaseUrl: string,
+  overrides: pg.PoolConfig = {},
+  sslCa?: string,
+): pg.PoolConfig {
   return {
     ...overrides,
     connectionString: databaseUrl,
     options: `-c search_path=${SEARCH_PATH.join(',')}`,
+    ...(sslCa ? { ssl: { ca: sslCa, rejectUnauthorized: true } } : {}),
   };
 }
 

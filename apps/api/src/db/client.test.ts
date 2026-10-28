@@ -25,4 +25,11 @@ describe('poolConfig', () => {
       options: '-c search_path=public,extensions',
     });
   });
+
+  it('verifies the server certificate against DATABASE_SSL_CA when one is given', () => {
+    const ca = ['-----BEGIN CERTIFICATE-----', 'MIIB', '-----END CERTIFICATE-----'].join('\n');
+
+    expect(poolConfig(url, {}, ca).ssl).toEqual({ ca, rejectUnauthorized: true });
+    expect(poolConfig(url)).not.toHaveProperty('ssl');
+  });
 });

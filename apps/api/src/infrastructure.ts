@@ -29,10 +29,11 @@ export function createInfrastructure(
   databaseOptions: DatabaseOptions = {},
 ): Infrastructure {
   const pool = new pg.Pool(
-    poolConfig(config.DATABASE_URL, {
-      max: 5,
-      connectionTimeoutMillis: config.HEALTH_CHECK_TIMEOUT_MS,
-    }),
+    poolConfig(
+      config.DATABASE_URL,
+      { max: config.DATABASE_POOL_MAX, connectionTimeoutMillis: config.HEALTH_CHECK_TIMEOUT_MS },
+      config.DATABASE_SSL_CA,
+    ),
   );
   const s3 = createS3Client(config);
   const blobStore = new S3BlobStore(s3, config.S3_BUCKET);

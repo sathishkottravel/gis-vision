@@ -34,7 +34,9 @@ describe('loadConfig', () => {
       UPLOAD_MAX_BYTES: 10_485_760,
       UPLOAD_URL_TTL_SECONDS: 900,
       IMAGE_URL_TTL_SECONDS: 300,
+      DATABASE_POOL_MAX: 5,
     });
+    expect(config.DATABASE_SSL_CA).toBeUndefined();
   });
 
   it('coerces numeric settings', () => {
@@ -80,5 +82,47 @@ describe('loadDatabaseConfig', () => {
 
   it('rejects a missing DATABASE_URL by name', () => {
     expect(() => loadDatabaseConfig({})).toThrow('DATABASE_URL is required');
+  });
+});
+
+describe('database TLS and pool settings', () => {
+  const pem = ['-----BEGIN CERTIFICATE-----', 'MIIB', '-----END CERTIFICATE-----'].join('\n');
+
+  it('accepts a PEM CA, also with escaped newlines on one line', () => {
+    expect(loadConfig({ ...validEnv, DATABASE_SSL_CA: `${pem}\n` }).DATABASE_SSL_CA).toBe(pem);
+    const oneLine = pem.replaceAll('\n', String.raw`\n`);
+    expect(oneLine).not.toContain('\n');
+    expect(loadConfig({ ...validEnv, DATABASE_SSL_CA: oneLine }).DATABASE_SSL_CA).toBe(pem);
+    expect(
+      loadDatabaseConfig({ DATABASE_URL: validEnv.DATABASE_URL, DATABASE_SSL_CA: pem }),
+    ).toEqual({
+      DATABASE_URL: validEnv.DATABASE_URL,
+      DATABASE_SSL_CA: pem,
+    });
+  });
+
+  it('rejects a CA that is not a PEM certificate, without printing it', () => {
+    const error = loadError({ ...validEnv, DATABASE_SSL_CA: 'not-a-cert-secret' });
+
+    expect(error.invalidSettings).toEqual(['DATABASE_SSL_CA is invalid']);
+    expect(error.message).not.toContain('not-a-cert-secret');
+  });
+
+  it('rejects sslmode in the URL together with a CA, since it would override the check', () => {
+    const env = {
+      ...validEnv,
+      DATABASE_URL: `${validEnv.DATABASE_URL}?sslmode=require`,
+      DATABASE_SSL_CA: pem,
+    };
+
+    expect(loadError(env).invalidSettings).toEqual(['DATABASE_URL is invalid']);
+    expect(() => loadDatabaseConfig(env)).toThrow('DATABASE_URL is invalid');
+  });
+
+  it('bounds DATABASE_POOL_MAX to 1-100', () => {
+    expect(loadConfig({ ...validEnv, DATABASE_POOL_MAX: '1' }).DATABASE_POOL_MAX).toBe(1);
+    expect(loadError({ ...validEnv, DATABASE_POOL_MAX: '0' }).invalidSettings).toEqual([
+      'DATABASE_POOL_MAX is invalid',
+    ]);
   });
 });
