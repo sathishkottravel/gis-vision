@@ -89,6 +89,7 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 - [x] 13.3 Add a capture detail view listing its detections, plus a simple form (label, bbox numbers, attributes JSON) that posts a `manual` detection and shows validation errors; verify manually that a valid detection appears and an invalid one shows its error
 - [x] 13.4 End-to-end check of Phase 0+1: from a clean clone, follow the README to run Compose, migrate, start the API and web, upload, annotate and see the detection; verify `pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration` are all green and CI passes
 - [x] 13.5 Document the end-to-end capture upload trace (browser -> Vite proxy -> API -> Postgres + RustFS, with each error exit) in `apps/api/README.md` next to the summary diagram; verify it matches the code paths and the existing tests
+- [x] 13.6 Render the capture upload diagrams in `apps/api/README.md` (summary and detailed trace) as Mermaid sequence diagrams so GitHub draws them; verify both parse with Mermaid and render on GitHub
 
 ## Workflow follow-up
 
