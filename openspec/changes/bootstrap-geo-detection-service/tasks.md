@@ -84,10 +84,10 @@ Prerequisites: current Node LTS, pnpm, Docker Desktop running (Compose and Testc
 
 ## 13. F1.7 Minimal UI
 
-- [ ] 13.1 Scaffold `apps/web` with Vite + React + TypeScript and a dev proxy to the API; verify `pnpm --filter web dev` serves a page that shows the `/health` status
-- [ ] 13.2 Build one plain page: choose an image and optional lat/lon, then run the three-step upload (create, PUT, complete) and show the capture list with thumbnails; verify manually against Compose that an uploaded image appears in the list
-- [ ] 13.3 Add a capture detail view listing its detections, plus a simple form (label, bbox numbers, attributes JSON) that posts a `manual` detection and shows validation errors; verify manually that a valid detection appears and an invalid one shows its error
-- [ ] 13.4 End-to-end check of Phase 0+1: from a clean clone, follow the README to run Compose, migrate, start the API and web, upload, annotate and see the detection; verify `pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration` are all green and CI passes
+- [x] 13.1 Scaffold `apps/web` with Vite + React + TypeScript and a dev proxy to the API; verify `pnpm --filter web dev` serves a page that shows the `/health` status
+- [x] 13.2 Build one plain page: choose an image and optional lat/lon, then run the three-step upload (create, PUT, complete) and show the capture list with thumbnails; verify manually against Compose that an uploaded image appears in the list
+- [x] 13.3 Add a capture detail view listing its detections, plus a simple form (label, bbox numbers, attributes JSON) that posts a `manual` detection and shows validation errors; verify manually that a valid detection appears and an invalid one shows its error
+- [x] 13.4 End-to-end check of Phase 0+1: from a clean clone, follow the README to run Compose, migrate, start the API and web, upload, annotate and see the detection; verify `pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration` are all green and CI passes
 - [x] 13.5 Document the end-to-end capture upload trace (browser -> Vite proxy -> API -> Postgres + RustFS, with each error exit) in `apps/api/README.md` next to the summary diagram; verify it matches the code paths and the existing tests
 
 ## Workflow follow-up
