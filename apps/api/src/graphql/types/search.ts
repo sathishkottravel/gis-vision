@@ -32,13 +32,18 @@ const DetectionFilter = builder.inputType('DetectionFilter', {
     bbox: t.field({ type: BoundingBoxInput }),
     near: t.field({ type: NearInput }),
     detectorId: t.id(),
+    observedFrom: t.field({ type: 'DateTime', description: 'Observed at or after (inclusive).' }),
+    observedTo: t.field({ type: 'DateTime', description: 'Observed before (exclusive).' }),
   }),
 });
 
 const CaptureFilter = builder.inputType('CaptureFilter', {
-  description: 'Spatial filters use the capture location; captures without one never match.',
+  description:
+    'Spatial filters use the capture location; captures without one never match. The time range is half-open.',
   fields: (t) => ({
     bbox: t.field({ type: BoundingBoxInput }),
+    capturedFrom: t.field({ type: 'DateTime', description: 'Captured at or after (inclusive).' }),
+    capturedTo: t.field({ type: 'DateTime', description: 'Captured before (exclusive).' }),
   }),
 });
 

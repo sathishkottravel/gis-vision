@@ -9,7 +9,8 @@ export function withoutNulls(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(withoutNulls);
   }
-  if (typeof value === 'object') {
+  // Only plain objects (input objects); Dates from the DateTime scalar pass through as they are.
+  if (typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
     return Object.fromEntries(
       Object.entries(value as Record<string, unknown>)
         .filter(([, item]) => item !== null)
