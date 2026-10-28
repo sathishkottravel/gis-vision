@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   geoBoundingBoxSchema,
+  captureFilterSchema,
   crossesAntimeridian,
   detectionFilterSchema,
   nearSchema,
@@ -110,5 +111,51 @@ describe('page size', () => {
 
   it.each([0, 101, 2.5])('rejects %d', (first) => {
     expect(failedPaths(pageSizeSchema, first)).toEqual(['']);
+  });
+});
+
+describe('time ranges', () => {
+  const jan = '2026-01-01T00:00:00Z';
+  const feb = '2026-02-01T00:00:00Z';
+
+  it('accepts either bound alone or both, as ISO strings or Dates, and returns Dates', () => {
+    expect(detectionFilterSchema.parse({ observedFrom: jan })).toEqual({
+      observedFrom: new Date(jan),
+    });
+    expect(detectionFilterSchema.parse({ observedTo: new Date(feb) })).toEqual({
+      observedTo: new Date(feb),
+    });
+    expect(detectionFilterSchema.parse({ observedFrom: jan, observedTo: feb })).toEqual({
+      observedFrom: new Date(jan),
+      observedTo: new Date(feb),
+    });
+  });
+
+  it.each([
+    ['an empty range (from = to)', { observedFrom: jan, observedTo: jan }, ['observedTo']],
+    ['an inverted range', { observedFrom: feb, observedTo: jan }, ['observedTo']],
+    ['a time without offset', { observedFrom: '2026-01-01T00:00:00' }, ['observedFrom']],
+  ])('rejects %s', (_, input, paths) => {
+    expect(failedPaths(detectionFilterSchema, input)).toEqual(paths);
+  });
+
+  it('combines with the spatial and detector filters', () => {
+    const filter = { bbox: BERLIN_BOX, detectorId: 'manual', observedFrom: jan, observedTo: feb };
+
+    expect(detectionFilterSchema.parse(filter)).toEqual({
+      ...filter,
+      observedFrom: new Date(jan),
+      observedTo: new Date(feb),
+    });
+  });
+
+  it('applies the same rules to capture times', () => {
+    expect(failedPaths(captureFilterSchema, { capturedFrom: feb, capturedTo: jan })).toEqual([
+      'capturedTo',
+    ]);
+    expect(captureFilterSchema.parse({ bbox: BERLIN_BOX, capturedFrom: jan })).toEqual({
+      bbox: BERLIN_BOX,
+      capturedFrom: new Date(jan),
+    });
   });
 });

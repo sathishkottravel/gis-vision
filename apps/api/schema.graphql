@@ -45,10 +45,16 @@ type CaptureEdge {
 }
 
 """
-Spatial filters use the capture location; captures without one never match.
+Spatial filters use the capture location; captures without one never match. The time range is half-open.
 """
 input CaptureFilter {
   bbox: BoundingBoxInput
+
+  """Captured at or after (inclusive)."""
+  capturedFrom: DateTime
+
+  """Captured before (exclusive)."""
+  capturedTo: DateTime
 }
 
 enum CaptureStatus {
@@ -97,6 +103,12 @@ input DetectionFilter {
   bbox: BoundingBoxInput
   detectorId: ID
   near: NearInput
+
+  """Observed at or after (inclusive)."""
+  observedFrom: DateTime
+
+  """Observed before (exclusive)."""
+  observedTo: DateTime
 }
 
 """

@@ -1,5 +1,5 @@
 import type { CaptureFilter } from '@gis-vision/schemas';
-import { and, desc, isNotNull } from 'drizzle-orm';
+import { and, desc, gte, isNotNull, lt } from 'drizzle-orm';
 import type { Database } from '../db/client.js';
 import { capture } from '../db/schema.js';
 import { inBoundingBox } from './spatial.js';
@@ -13,7 +13,8 @@ export interface CaptureSearchPage {
 
 /**
  * Captures matching the filter, newest first (spec: Stable ordering). A bounding box applies
- * to the capture's own location, so captures without one never match it.
+ * to the capture's own location, so captures without one never match it; the time range is
+ * half-open over the capture time.
  */
 export function captureSearchQuery(db: Database, filter: CaptureFilter, limit: number) {
   return db
@@ -23,6 +24,8 @@ export function captureSearchQuery(db: Database, filter: CaptureFilter, limit: n
       and(
         filter.bbox ? isNotNull(capture.geom) : undefined,
         filter.bbox ? inBoundingBox(capture.geom, filter.bbox) : undefined,
+        filter.capturedFrom ? gte(capture.capturedAt, filter.capturedFrom) : undefined,
+        filter.capturedTo ? lt(capture.capturedAt, filter.capturedTo) : undefined,
       ),
     )
     .orderBy(desc(capture.createdAt), desc(capture.id))

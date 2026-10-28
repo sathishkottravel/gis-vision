@@ -39,13 +39,43 @@ export const nearSchema = z.object({
 
 export type Near = z.infer<typeof nearSchema>;
 
-/** Detection search filter. At most one spatial filter: `bbox` or `near`. */
+/**
+ * A time bound: a `Date` (GraphQL's `DateTime` scalar parses to one) or an ISO 8601 string
+ * with offset (REST and the web app). Either way it comes out as a `Date`.
+ */
+export const instantSchema = z.union([
+  z.date(),
+  z.iso.datetime({ offset: true }).transform((value) => new Date(value)),
+]);
+
+/**
+ * Half-open time range `[from, to)`: either bound may be omitted, and when both are given
+ * `from` must be earlier than `to` (spec geo-temporal-query: Detection time range).
+ */
+export function timeRangeSchema<From extends string, To extends string>(from: From, to: To) {
+  return z
+    .object({ [from]: instantSchema.optional(), [to]: instantSchema.optional() } as Record<
+      From | To,
+      z.ZodOptional<typeof instantSchema>
+    >)
+    .refine(
+      (range) => {
+        const start = (range as Record<string, Date | undefined>)[from];
+        const end = (range as Record<string, Date | undefined>)[to];
+        return start === undefined || end === undefined || start < end;
+      },
+      { path: [to], message: `${to} must be later than ${from}` },
+    );
+}
+
+/** Detection search filter: all given conditions apply, and at most one of `bbox` or `near`. */
 export const detectionFilterSchema = z
   .object({
     bbox: geoBoundingBoxSchema.optional(),
     near: nearSchema.optional(),
     detectorId: z.string().min(1).optional(),
   })
+  .and(timeRangeSchema('observedFrom', 'observedTo'))
   .refine((filter) => filter.bbox === undefined || filter.near === undefined, {
     path: ['near'],
     message: 'use either bbox or near, not both',
@@ -53,8 +83,10 @@ export const detectionFilterSchema = z
 
 export type DetectionFilter = z.infer<typeof detectionFilterSchema>;
 
-/** Capture search filter over the capture's own location. */
-export const captureFilterSchema = z.object({ bbox: geoBoundingBoxSchema.optional() });
+/** Capture search filter over the capture's own location and capture time. */
+export const captureFilterSchema = z
+  .object({ bbox: geoBoundingBoxSchema.optional() })
+  .and(timeRangeSchema('capturedFrom', 'capturedTo'));
 
 export type CaptureFilter = z.infer<typeof captureFilterSchema>;
 

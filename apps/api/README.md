@@ -181,6 +181,13 @@ A read-only GraphQL endpoint sits next to the REST API (OpenSpec change `phase-2
 - **Locations** are GeoJSON Points (`{ "type": "Point", "coordinates": [lon, lat] }`). `Detection.location` is the effective location: its own point, else its capture's, and `locationSource` says which (`DETECTION`, `CAPTURE` or `NONE`).
 - **Batching:** each relation is loaded with one query per request, however many items ask for it (per-request DataLoaders; an integration test checks that 5 and 50 detections take the same three SQL statements).
 
+From a shell:
+
+```sh
+curl -s localhost:3000/graphql -H 'content-type: application/json' -d '{"query":"{ detectors { id kind } }"}'
+# {"data":{"detectors":[{"id":"manual","kind":"manual"}]}}
+```
+
 Example queries (paste into GraphiQL; replace the id with one from `GET /captures`):
 
 ```graphql
@@ -298,7 +305,33 @@ SELECT id FROM detection
 
 Run it with `docker compose exec db psql -U gis -d gis_vision`. Replace the `ST_DWithin` line with `geom && ST_MakeEnvelope(13.3, 52.4, 13.5, 52.6, 4326)` to check the bounding-box index (`..._geom_idx`).
 
-```sh
-curl -s localhost:3000/graphql -H 'content-type: application/json' -d '{"query":"{ detectors { id kind } }"}'
-# {"data":{"detectors":[{"id":"manual","kind":"manual"}]}}
+### Time filters
+
+- `detections(filter: { observedFrom, observedTo })` filters on the observation time, and `captures(filter: { capturedFrom, capturedTo })` on the capture time. Both are `DateTime` (ISO 8601 with offset).
+- The range is half-open: `from` is included, `to` is not. So `2026-01-01T00:00:00Z` to `2026-02-01T00:00:00Z` is exactly January. Either bound may be left out. When both are given, `from` must be earlier than `to`, or the request fails with `BAD_USER_INPUT` on `filter.observedTo` (or `filter.capturedTo`).
+- Time combines with `bbox`/`near` and `detectorId`: all conditions apply.
+- **Partition pruning:** detections are stored in monthly partitions (plus a default partition for times outside the pre-created months). The time bounds are applied to every branch of the search, so Postgres reads only the partitions that overlap the range. An integration test checks this with `EXPLAIN`: one month reads one partition, and a month five years back reads only `detection_default`.
+
+```graphql
+# Detections in Berlin during October 2026, from the manual detector
+{
+  detections(
+    filter: {
+      bbox: { west: 13.3, south: 52.4, east: 13.5, north: 52.6 }
+      observedFrom: "2026-10-01T00:00:00Z"
+      observedTo: "2026-11-01T00:00:00Z"
+      detectorId: "manual"
+    }
+  ) {
+    edges {
+      node {
+        label
+        observedAt
+        locationSource
+      }
+    }
+  }
+}
 ```
+
+To see the pruning yourself in psql, compare `EXPLAIN SELECT id FROM detection WHERE observed_at >= '2026-10-01' AND observed_at < '2026-11-01';` (one partition) with the same query without the `WHERE` clause (every partition).

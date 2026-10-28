@@ -1,5 +1,16 @@
 import type { DetectionFilter } from '@gis-vision/schemas';
-import { and, asc, eq, getTableColumns, isNotNull, isNull, sql, type SQL } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  eq,
+  getTableColumns,
+  gte,
+  isNotNull,
+  isNull,
+  lt,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import { unionAll } from 'drizzle-orm/pg-core';
 import type { Database } from '../db/client.js';
 import { detection } from '../db/detection.js';
@@ -25,10 +36,15 @@ export interface DetectionSearchPage {
 
 const columns = getTableColumns(detection);
 
-/** Predicates every branch shares (detector now; time and keyset come in F2.4/F2.5). */
+/**
+ * Predicates every branch shares. The time bounds sit on `detection.observed_at` itself in
+ * each branch, so Postgres prunes the monthly partitions per branch (design D7).
+ */
 function commonPredicates(filter: DetectionFilter): (SQL | undefined)[] {
   return [
     filter.detectorId === undefined ? undefined : eq(detection.detectorId, filter.detectorId),
+    filter.observedFrom === undefined ? undefined : gte(detection.observedAt, filter.observedFrom),
+    filter.observedTo === undefined ? undefined : lt(detection.observedAt, filter.observedTo),
   ];
 }
 
