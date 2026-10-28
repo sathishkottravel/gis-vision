@@ -233,7 +233,7 @@ query Capture($id: ID!) {
 
 ### Spatial search
 
-`detections(filter, first)` and `captures(filter, first)` return connections: `edges { node }` plus `pageInfo { hasNextPage }`. `first` is 1-100 (default 50). Cursors (`after`) follow in F2.5.
+`detections(filter, first, after)` and `captures(filter, first, after)` return connections (see [Pagination](#pagination)).
 
 - **Bounding box** (`bbox: { west, south, east, north }`, WGS84 degrees, edges included). `west > east` means the box crosses the antimeridian and covers `west..180` plus `-180..east`. `south` must not be north of `north`.
 - **Radius** (`near: { center: <GeoJSON Point>, radiusMeters }`): geodesic distance, boundary included, up to 50,000 m. Use either `bbox` or `near`, not both.
@@ -304,6 +304,38 @@ SELECT id FROM detection
 ```
 
 Run it with `docker compose exec db psql -U gis -d gis_vision`. Replace the `ST_DWithin` line with `geom && ST_MakeEnvelope(13.3, 52.4, 13.5, 52.6, 4326)` to check the bounding-box index (`..._geom_idx`).
+
+### Pagination
+
+Search results are connections, paged forward with opaque cursors:
+
+- **Shape:** `edges { cursor node }` and `pageInfo { hasNextPage endCursor }`. `endCursor` is the last edge's cursor, or `null` on an empty page.
+- **Arguments:** `first` (1-100, default 50) and `after` (a cursor from the same field). To read everything, pass each page's `endCursor` as the next `after` until `hasNextPage` is `false`. Backward paging (`last`/`before`) and total counts are not offered.
+- **Order:** detections by `observedAt` ascending, then id; captures by `createdAt` descending (newest first), then id. Paging is keyset-based: the next page starts strictly after the cursor's position, so rows added while you page never cause repeats or gaps among the rows already passed. Ties on the timestamp are split by id.
+- **Cursors** are opaque strings: they hold the sort timestamp at microsecond precision and the row id, and a detections cursor is rejected by `captures` (and vice versa). A value not issued by the field returns `BAD_USER_INPUT` on `after`. Treat cursors as short-lived tokens, not ids to store.
+
+```graphql
+# Page through detections in Berlin, two at a time: run once, then pass endCursor as $after
+query Page($after: String) {
+  detections(
+    filter: { bbox: { west: 13.3, south: 52.4, east: 13.5, north: 52.6 } }
+    first: 2
+    after: $after
+  ) {
+    edges {
+      cursor
+      node {
+        label
+        observedAt
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+```
 
 ### Time filters
 

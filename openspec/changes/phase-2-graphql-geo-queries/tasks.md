@@ -31,9 +31,9 @@
 
 ## 5. F2.5 Pagination
 
-- [ ] 5.1 Implement `src/search/cursor.ts` (base64url JSON `{v, t, id}` with a microsecond-precision timestamp string, Zod-validated decode) and `first` bounds (1–100, default 50); verify unit tests for round trip, tampered or foreign cursors → `BAD_USER_INPUT` on `after`, and `first: 0`/`101` rejected
-- [ ] 5.2 Add keyset `after` to `detections` (`(observed_at, id) >` in every branch) and `captures` (`(created_at, id) <`), with `hasNextPage` from `first + 1` and `endCursor` from the last edge (design D8); verify integration tests that 120 matches arrive exactly once over three pages, rows with identical `now()` timestamps split across a page boundary appear once, and a detection inserted earlier in the order after page 1 causes no repeats
-- [ ] 5.3 Regenerate `schema.graphql` and document pagination (connection shape, cursors, limits) in the API README; verify the SDL drift test passes and the paging example runs in GraphiQL
+- [x] 5.1 Implement `src/search/cursor.ts` (base64url JSON `{v, t, id}` with a microsecond-precision timestamp string, Zod-validated decode) and `first` bounds (1–100, default 50); verify unit tests for round trip, tampered or foreign cursors → `BAD_USER_INPUT` on `after`, and `first: 0`/`101` rejected
+- [x] 5.2 Add keyset `after` to `detections` (`(observed_at, id) >` in every branch) and `captures` (`(created_at, id) <`), with `hasNextPage` from `first + 1` and `endCursor` from the last edge (design D8); verify integration tests that 120 matches arrive exactly once over three pages, rows with identical `now()` timestamps split across a page boundary appear once, and a detection inserted earlier in the order after page 1 causes no repeats
+- [x] 5.3 Regenerate `schema.graphql` and document pagination (connection shape, cursors, limits) in the API README; verify the SDL drift test passes and the paging example runs in GraphiQL
 
 ## 6. F2.6 Map page
 

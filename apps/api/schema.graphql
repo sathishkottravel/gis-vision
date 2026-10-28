@@ -41,6 +41,7 @@ type CaptureConnection {
 }
 
 type CaptureEdge {
+  cursor: String!
   node: Capture!
 }
 
@@ -93,6 +94,7 @@ type DetectionConnection {
 }
 
 type DetectionEdge {
+  cursor: String!
   node: Detection!
 }
 
@@ -163,6 +165,10 @@ input NearInput {
 
 """Where a page ends (forward pagination only)."""
 type PageInfo {
+  """
+  Cursor of the last edge; pass it as `after` for the next page. `null` on an empty page.
+  """
+  endCursor: String
   hasNextPage: Boolean!
 }
 
@@ -172,6 +178,10 @@ type Query {
 
   """Captures matching the filter, newest first."""
   captures(
+    """
+    Continue after this cursor (an `endCursor` or edge `cursor` from this field).
+    """
+    after: String
     filter: CaptureFilter
 
     """Page size, 1-100 (default 50)."""
@@ -180,6 +190,10 @@ type Query {
 
   """Detections matching the filter, ordered by observation time, then id."""
   detections(
+    """
+    Continue after this cursor (an `endCursor` or edge `cursor` from this field).
+    """
+    after: String
     filter: DetectionFilter
 
     """Page size, 1-100 (default 50)."""

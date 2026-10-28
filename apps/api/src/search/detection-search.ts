@@ -16,6 +16,7 @@ import type { Database } from '../db/client.js';
 import { detection } from '../db/detection.js';
 import type { Point } from '../db/geometry.js';
 import { capture } from '../db/schema.js';
+import { CURSOR_TIMESTAMP_FORMAT, type Cursor } from './cursor.js';
 import { decodePoint, spatialPredicate } from './spatial.js';
 
 export type LocationSource = 'DETECTION' | 'CAPTURE' | 'NONE';
@@ -27,6 +28,8 @@ export interface DetectionHit {
   row: DetectionRow;
   location: Point | null;
   locationSource: LocationSource;
+  /** Keyset position after this hit, for `after` (design D8). */
+  cursor: Cursor;
 }
 
 export interface DetectionSearchPage {
@@ -36,12 +39,26 @@ export interface DetectionSearchPage {
 
 const columns = getTableColumns(detection);
 
+/** `observed_at` at full (microsecond) precision; a JS `Date` would round it to milliseconds. */
+const cursorTimestamp =
+  sql<string>`to_char(${detection.observedAt} AT TIME ZONE 'UTC', ${CURSOR_TIMESTAMP_FORMAT})`.as(
+    'cursor_ts',
+  );
+
 /**
  * Predicates every branch shares. The time bounds sit on `detection.observed_at` itself in
  * each branch, so Postgres prunes the monthly partitions per branch (design D7).
  */
-function commonPredicates(filter: DetectionFilter): (SQL | undefined)[] {
+function commonPredicates(filter: DetectionFilter, after?: Cursor): (SQL | undefined)[] {
   return [
+    // Keyset: strictly after the cursor in (observed_at, id) order. The plain lower bound on
+    // observed_at repeats it in a form the planner can also use to skip earlier partitions.
+    after === undefined
+      ? undefined
+      : sql`(${detection.observedAt}, ${detection.id}) > (${after.timestamp}::timestamptz, ${after.id}::uuid)`,
+    after === undefined
+      ? undefined
+      : sql`${detection.observedAt} >= ${after.timestamp}::timestamptz`,
     filter.detectorId === undefined ? undefined : eq(detection.detectorId, filter.detectorId),
     filter.observedFrom === undefined ? undefined : gte(detection.observedAt, filter.observedFrom),
     filter.observedTo === undefined ? undefined : lt(detection.observedAt, filter.observedTo),
@@ -58,8 +75,13 @@ const ORDER = [asc(sql`"observed_at"`), asc(sql`"id"`)];
  * matched by their capture's point (capture GiST, then `detection_capture_id_idx`). A single
  * `COALESCE(d.geom, c.geom)` predicate spans two tables and could use neither index.
  */
-export function detectionSearchQuery(db: Database, filter: DetectionFilter, limit: number) {
-  const common = commonPredicates(filter);
+export function detectionSearchQuery(
+  db: Database,
+  filter: DetectionFilter,
+  limit: number,
+  after?: Cursor,
+) {
+  const common = commonPredicates(filter, after);
   const ownSpatial = spatialPredicate(detection.geom, filter);
   const captureSpatial = spatialPredicate(capture.geom, filter);
 
@@ -68,6 +90,7 @@ export function detectionSearchQuery(db: Database, filter: DetectionFilter, limi
     return db
       .select({
         ...columns,
+        cursorTs: cursorTimestamp,
         effectiveGeom: sql<unknown>`COALESCE(${detection.geom}, ${capture.geom})`.as(
           'effective_geom',
         ),
@@ -86,6 +109,7 @@ export function detectionSearchQuery(db: Database, filter: DetectionFilter, limi
   const own = db
     .select({
       ...columns,
+      cursorTs: cursorTimestamp,
       effectiveGeom: sql<unknown>`${detection.geom}`.as('effective_geom'),
       locationSource: sql<LocationSource>`'DETECTION'`.as('location_source'),
     })
@@ -95,6 +119,7 @@ export function detectionSearchQuery(db: Database, filter: DetectionFilter, limi
   const fromCapture = db
     .select({
       ...columns,
+      cursorTs: cursorTimestamp,
       effectiveGeom: sql<unknown>`${capture.geom}`.as('effective_geom'),
       locationSource: sql<LocationSource>`'CAPTURE'`.as('location_source'),
     })
@@ -107,17 +132,20 @@ export function detectionSearchQuery(db: Database, filter: DetectionFilter, limi
     .limit(limit);
 }
 
-/** Runs the search for one page of `first` hits. */
+/** Runs the search for one page of `first` hits, starting after `after` when given. */
 export async function searchDetections(
   db: Database,
   filter: DetectionFilter,
   first: number,
+  after?: Cursor,
 ): Promise<DetectionSearchPage> {
-  const rows = await detectionSearchQuery(db, filter, first + 1);
-  const hits = rows.slice(0, first).map(({ effectiveGeom, locationSource, ...row }) => ({
+  // One extra row tells whether another page exists.
+  const rows = await detectionSearchQuery(db, filter, first + 1, after);
+  const hits = rows.slice(0, first).map(({ effectiveGeom, locationSource, cursorTs, ...row }) => ({
     row,
     location: decodePoint(effectiveGeom),
     locationSource,
+    cursor: { kind: 'detection' as const, timestamp: cursorTs, id: row.id },
   }));
   return { hits, hasNextPage: rows.length > first };
 }
