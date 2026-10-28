@@ -133,3 +133,49 @@ td {
   border-bottom: 1px solid #8884;
   padding: 4px 6px;
 }
+nav {
+  display: flex;
+  gap: 16px;
+  margin-left: 24px;
+  margin-right: auto;
+}
+nav a[aria-current='page'] {
+  text-decoration: underline;
+}
+.map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.time-range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  border: 1px solid #8884;
+  border-radius: 6px;
+}
+.map-legend {
+  font-size: 0.9em;
+}
+.map-legend .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 4px 0 8px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+}
+.map {
+  height: 70vh;
+  min-height: 320px;
+  border-radius: 6px;
+}
+.maplibregl-popup-content {
+  color: #222;
+}
+.maplibregl-popup-content a {
+  display: inline-block;
+  margin-top: 4px;
+}
