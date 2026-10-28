@@ -1,7 +1,81 @@
 """
+Pixel bounding box in the capture image: top-left corner, width and height.
+"""
+type BoundingBox {
+  h: Float!
+  w: Float!
+  x: Float!
+  y: Float!
+}
+
+"""An uploaded image with its capture time and optional location."""
+type Capture {
+  byteSize: Int!
+  capturedAt: DateTime!
+  contentType: String!
+  createdAt: DateTime!
+
+  """Detections on this capture, ordered by observation time."""
+  detections: [Detection!]!
+  id: ID!
+
+  """Time-limited download URL; `null` while the capture is `pending`."""
+  imageUrl: String
+  location: GeoJSONPoint
+  status: CaptureStatus!
+}
+
+enum CaptureStatus {
+  """Created; the image upload is not verified yet"""
+  pending
+
+  """The image is uploaded and verified"""
+  ready
+}
+
+"""
 ISO 8601 date-time with offset, returned in UTC, e.g. 2026-03-01T10:00:00.000Z
 """
 scalar DateTime
+
+"""Something a detector found in a capture, located in space and time."""
+type Detection {
+  attributes: JSON!
+  bbox: BoundingBox!
+  capture: Capture!
+  confidence: Float
+  createdAt: DateTime!
+  detector: Detector!
+  id: ID!
+  label: String!
+
+  """Effective location: its own point, else its capture's location."""
+  location: GeoJSONPoint
+  locationSource: LocationSource!
+  observedAt: DateTime!
+}
+
+"""
+Records detections on captures and declares the JSON Schema of their attributes.
+"""
+type Detector {
+  """Slug, e.g. `manual`"""
+  id: ID!
+  kind: DetectorKind!
+  name: String!
+
+  """JSON Schema (supported subset) for the `attributes` of its detections"""
+  outputSchema: JSON!
+  version: Int!
+}
+
+enum DetectorKind {
+  """A human annotating captures"""
+  manual
+
+  """An automated model"""
+  ml
+}
 
 """
 GeoJSON Point in WGS84: { "type": "Point", "coordinates": [longitude, latitude] }
@@ -11,7 +85,25 @@ scalar GeoJSONPoint
 """Any JSON value, e.g. detection attributes or a detector output schema"""
 scalar JSON
 
+"""Where a detection's effective `location` comes from."""
+enum LocationSource {
+  """Its capture's location (the detection has no own point)"""
+  CAPTURE
+
+  """The detection's own point"""
+  DETECTION
+
+  """Neither the detection nor its capture has a location"""
+  NONE
+}
+
 type Query {
-  """Liveness check for the GraphQL endpoint; always "pong"."""
-  ping: String!
+  """A capture by id; `null` if it does not exist or the id is not a UUID."""
+  capture(id: ID!): Capture
+
+  """A detector by id; `null` if it does not exist."""
+  detector(id: ID!): Detector
+
+  """Every registered detector, ordered by id."""
+  detectors: [Detector!]!
 }

@@ -10,9 +10,9 @@
 
 ## 2. F2.2 Core types
 
-- [ ] 2.1 Add the `Detector`, `Capture` and `Detection` object types and the root fields `detectors`, `detector(id)` and `capture(id)`, with REST-equal values, `imageUrl` only for ready captures, `null` for unknown or non-UUID ids, and `Detection.location` plus `locationSource` from the effective location (design D5); verify integration tests for the nested read, REST equality, unknown id → null, pending → `imageUrl: null`, and the `CAPTURE`/`NONE` fallback cases
-- [ ] 2.2 Add per-request loaders `captureById`, `detectorById` and `detectionsByCaptureId` and use them for `Detection.capture`, `Detection.detector` and `Capture.detections` (ordered by observation time); give `createDatabase` an optional query logger; verify the integration test that 5 and 50 detections with capture and detector issue the same number of SQL queries
-- [ ] 2.3 Regenerate `schema.graphql` and add example queries for the core types to the API README; verify the SDL drift test passes and the README examples run in GraphiQL
+- [x] 2.1 Add the `Detector`, `Capture` and `Detection` object types and the root fields `detectors`, `detector(id)` and `capture(id)`, with REST-equal values, `imageUrl` only for ready captures, `null` for unknown or non-UUID ids, and `Detection.location` plus `locationSource` from the effective location (design D5); verify integration tests for the nested read, REST equality, unknown id → null, pending → `imageUrl: null`, and the `CAPTURE`/`NONE` fallback cases
+- [x] 2.2 Add per-request loaders `captureById`, `detectorById` and `detectionsByCaptureId` and use them for `Detection.capture`, `Detection.detector` and `Capture.detections` (ordered by observation time); give `createDatabase` an optional query logger; verify the integration test that 5 and 50 detections with capture and detector issue the same number of SQL queries
+- [x] 2.3 Regenerate `schema.graphql` and add example queries for the core types to the API README; verify the SDL drift test passes and the README examples run in GraphiQL
 
 ## 3. F2.3 Spatial queries
 

@@ -177,7 +177,54 @@ A read-only GraphQL endpoint sits next to the REST API (OpenSpec change `phase-2
 - **Errors:** standard GraphQL `errors`. Invalid arguments have `extensions.code: "BAD_USER_INPUT"` and `extensions.issues` (`[{ path, message }]`, like REST's `error.issues`); domain errors keep their REST code (e.g. `not_found`). Anything unexpected is returned as `"Unexpected error."` with `INTERNAL_SERVER_ERROR` and logged with the request id.
 - **Schema:** the SDL is committed as [`schema.graphql`](schema.graphql). After changing types, run `pnpm --filter @gis-vision/api graphql:schema`; a unit test fails while the file is out of date.
 
+- **Types:** `Capture`, `Detection` and `Detector`, with the same values as REST (`status` is `pending`/`ready`, `kind` is `manual`/`ml`). A capture links to its `detections` (ordered by `observedAt`); a detection links to its `capture` and `detector`. Unknown ids, or a capture id that is not a UUID, give `null` rather than an error.
+- **Locations** are GeoJSON Points (`{ "type": "Point", "coordinates": [lon, lat] }`). `Detection.location` is the effective location: its own point, else its capture's, and `locationSource` says which (`DETECTION`, `CAPTURE` or `NONE`).
+- **Batching:** each relation is loaded with one query per request, however many items ask for it (per-request DataLoaders; an integration test checks that 5 and 50 detections take the same three SQL statements).
+
+Example queries (paste into GraphiQL; replace the id with one from `GET /captures`):
+
+```graphql
+# Every detector and the JSON Schema of its attributes
+{
+  detectors {
+    id
+    name
+    kind
+    version
+    outputSchema
+  }
+}
+
+# A capture with its detections, each with where its location came from and its detector
+query Capture($id: ID!) {
+  capture(id: $id) {
+    status
+    capturedAt
+    location
+    imageUrl
+    detections {
+      label
+      confidence
+      bbox {
+        x
+        y
+        w
+        h
+      }
+      location
+      locationSource
+      observedAt
+      attributes
+      detector {
+        id
+        kind
+      }
+    }
+  }
+}
+```
+
 ```sh
-curl -s localhost:3000/graphql -H 'content-type: application/json' -d '{"query":"{ ping }"}'
-# {"data":{"ping":"pong"}}
+curl -s localhost:3000/graphql -H 'content-type: application/json' -d '{"query":"{ detectors { id kind } }"}'
+# {"data":{"detectors":[{"id":"manual","kind":"manual"}]}}
 ```
