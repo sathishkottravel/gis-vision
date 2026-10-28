@@ -52,7 +52,7 @@ curl -s "localhost:3000/captures/$ID"
 curl -s "localhost:3000/captures?limit=5"
 ```
 
-Uploading from a browser on another origin additionally needs a CORS rule on the bucket.
+Uploading from a browser on another origin additionally needs a CORS rule on the bucket. Locally, Compose's `rustfs-init` allows `WEB_ORIGIN` (the web app); see [Run the web app](../../README.md#run-the-web-app).
 
 ## Detectors
 

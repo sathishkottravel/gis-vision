@@ -1,0 +1,135 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+  line-height: 1.4;
+}
+body {
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 0 16px 48px;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+header a {
+  color: inherit;
+  text-decoration: none;
+}
+.badge {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.85em;
+  background: #8884;
+}
+.badge-ok {
+  background: #2e7d3240;
+}
+.badge-error,
+.badge-unreachable {
+  background: #c6282840;
+}
+.card {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #8886;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+.card h2 {
+  margin: 0;
+}
+label {
+  display: grid;
+  gap: 2px;
+  font-size: 0.9em;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.row label {
+  flex: 1 1 100px;
+}
+input,
+textarea,
+button {
+  font: inherit;
+  padding: 4px 6px;
+}
+button {
+  justify-self: start;
+}
+.error {
+  color: #c62828;
+}
+.error p {
+  margin: 0;
+}
+.muted {
+  opacity: 0.7;
+  font-size: 0.9em;
+}
+.captures {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+.captures a {
+  display: grid;
+  gap: 2px;
+  color: inherit;
+  text-decoration: none;
+}
+.captures img,
+.placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #8883;
+}
+.placeholder {
+  display: grid;
+  place-items: center;
+}
+.annotated {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+.annotated img {
+  display: block;
+  max-width: 100%;
+}
+.bbox {
+  position: absolute;
+  border: 2px solid #ff3d00;
+  box-sizing: border-box;
+}
+.bbox span {
+  position: absolute;
+  top: -1.4em;
+  left: -2px;
+  background: #ff3d00;
+  color: white;
+  font-size: 0.75em;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9em;
+}
+th,
+td {
+  text-align: left;
+  border-bottom: 1px solid #8884;
+  padding: 4px 6px;
+}

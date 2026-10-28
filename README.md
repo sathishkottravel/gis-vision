@@ -37,7 +37,7 @@ Prerequisites: Node 22.22+ (required by Testcontainers), pnpm 11, Docker Desktop
 ```sh
 pnpm install
 cp .env.example .env        # defaults match docker-compose.yml
-docker compose up -d        # PostGIS + RustFS, then creates the `captures` bucket
+docker compose up -d        # PostGIS + RustFS, then creates the `captures` bucket (with CORS for the web app)
 docker compose ps -a        # db and rustfs (healthy); rustfs-init Exited (0)
 pnpm db:migrate             # installs PostGIS into `extensions`, then applies table migrations
 ```
@@ -73,6 +73,22 @@ curl localhost:3000/health          # 200 {"status":"ok","database":"ok","object
 `/health` returns 503 with the failing dependency set to `"error"` when Postgres or object storage is down or slower than `HEALTH_CHECK_TIMEOUT_MS` (default 2000).
 
 The capture upload flow (presigned URLs, idempotency) and `curl` examples are in [`apps/api/README.md`](apps/api/README.md#capture-upload-flow).
+
+### Run the web app
+
+With Compose and the API running:
+
+```sh
+pnpm --filter @gis-vision/web dev   # http://localhost:5173; /api is proxied to localhost:3000
+```
+
+One plain page (`apps/web`, Vite + React) exercises the whole Phase 1 flow:
+
+1. The header shows the API's `/health` status.
+2. **Upload a capture:** choose a JPEG, PNG or WebP image, optionally enter latitude and longitude, and press _Upload_. The page creates the capture, PUTs the image straight to RustFS through the presigned URL and completes it; the capture then appears in the list with a thumbnail.
+3. **Annotate:** open a capture, enter a label and a bounding box in pixels (plus optional confidence and attributes JSON) and press _Add detection_. The detection is listed and drawn on the image. Invalid input shows the API's error with each failing field, e.g. `bbox.w` for a width of 0.
+
+The browser uploads to RustFS directly, so the bucket allows the page's origin (`WEB_ORIGIN` in `.env`, default `http://localhost:5173`); `rustfs-init` sets that CORS rule on every `docker compose up`. Set `API_URL` to proxy to an API on another address.
 
 ### Running tests
 

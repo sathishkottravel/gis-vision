@@ -38,7 +38,8 @@ services:
       timeout: 5s
       retries: 20
 
-  # One-shot job: creates the private captures bucket, then exits.
+  # One-shot job: creates the private captures bucket and lets the web app upload to it
+  # from the browser (CORS for presigned PUTs and image GETs), then exits.
   rustfs-init:
     image: amazon/aws-cli:2.38.5
     depends_on:
@@ -49,11 +50,16 @@ services:
       AWS_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-rustfsadmin-secret}
       AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
       BUCKET: ${S3_BUCKET:-captures}
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:5173}
     entrypoint: ['/bin/sh', '-c']
     command:
       - >
         aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket "$${BUCKET}" 2>/dev/null
         || aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket "$${BUCKET}";
+        aws --endpoint-url http://rustfs:9000 s3api put-bucket-cors --bucket "$${BUCKET}"
+        --cors-configuration "{\"CORSRules\":[{\"AllowedOrigins\":[\"$${WEB_ORIGIN}\"],
+        \"AllowedMethods\":[\"GET\",\"HEAD\",\"PUT\"],\"AllowedHeaders\":[\"*\"],
+        \"MaxAgeSeconds\":3000}]}";
         aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket "$${BUCKET}"
         && echo "bucket $${BUCKET} ready"
     restart: 'no'
