@@ -17,7 +17,7 @@
 
 ## 3. F2.5.3 Data dashboard
 
-- [ ] 3.1 Add the `pgadmin` service (`dpage/pgadmin4` pinned by digest, profile `tools`, `127.0.0.1:5050`, login from `.env`) with a preloaded `servers.json` connecting to `db` over TLS as `gis_readonly` (design D5); verify a `deploy/droplet` integration test that pgAdmin binds only `127.0.0.1` and that `gis_readonly` can select but not insert, update or delete
+- [x] 3.1 Add the `pgadmin` service (`dpage/pgadmin4` pinned by digest, profile `tools`, `127.0.0.1:5050`, login from `.env`) with a preloaded `servers.json` connecting to `db` over TLS as `gis_readonly` (design D5); verify a `deploy/droplet` integration test that pgAdmin binds only `127.0.0.1` and that `gis_readonly` can select but not insert, update or delete
 - [ ] 3.2 Document starting pgAdmin on demand and the SSH tunnel (`ssh -L 5050:127.0.0.1:5050`) in `deploy/droplet/README.md`, with a geometry-viewer example query; verify the local steps run as written
 - [ ] 3.3 On the droplet (maintainer): start pgAdmin, open it through the tunnel, log in, run the example query, and open the geometry viewer; verify the points render on the map and that port 5050 is not reachable from outside
 
