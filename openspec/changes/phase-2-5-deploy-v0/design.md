@@ -1,5 +1,12 @@
 # Design
 
+> **Scope change (2026-10-29), see `proposal.md`.**
+> - **Delivered:** D1-D5 and D12 (droplet, roles, TLS, PgBouncer, pgAdmin, tests).
+> - **Carried into `demo-cv-detection-deploy`:** D6-D8, D13 and D14 (Lambda entry, AWS stacks, web hosting, runbook, cost guardrails).
+> - **Deferred to a later hardening change:** D9-D11 (maintenance functions and `pg_cron`, host hardening, backups).
+>
+> The `data-retention` spec was dropped from this change with F2.5.4.
+
 ## Context
 
 See `proposal.md` (Why) and the specs (`hosted-deployment`, `data-retention`) for the required behavior. This document covers how to deploy what Phases 0-2 left in place:

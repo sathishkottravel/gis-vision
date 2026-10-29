@@ -1,5 +1,11 @@
 # Proposal
 
+> **Scope change (2026-10-29).** To reach a working public demo sooner, this change closes after the droplet database work it delivered: **F2.5.1** (PostGIS container and roles), **F2.5.2** (PgBouncer with end-to-end TLS) and **F2.5.3** (pgAdmin through an SSH tunnel; its two manual checks are deferred).
+> - **Moved to `demo-cv-detection-deploy`**, which also adds ML detections: F2.5.6-F2.5.8 (AWS stack, web hosting, runbook and guardrails) and the minimum of F2.5.5 needed for a public pooler port (cloud firewall, key-only SSH).
+> - **Deferred to a later hardening change:** F2.5.4 (scheduled cleanup) and the rest of F2.5.5 (host hardening, backups, restore rehearsal).
+>
+> The plan below is kept as written, for reference; `tasks.md` tracks only what was delivered.
+
 ## Why
 
 Phases 0-2 run only locally. Deploy v0 puts them online at minimal cost, so there is a public demo early. It also tests the hosting-agnostic design (`buildApp`, the BlobStore port, presigned uploads) against real infrastructure before async processing and ML add more moving parts.
@@ -44,11 +50,7 @@ Each feature is delivered on its own branch with its own PR (see `docs/ROADMAP.m
 ## Capabilities
 
 ### New Capabilities
-- `data-retention`: what is cleaned up and when. This covers upcoming partitions, the retention period for detection data, and the removal of abandoned uploads, plus the guarantees about what is never removed.
-- `hosted-deployment`: how the public deployment behaves and is protected:
-  - one HTTPS origin for the web app and the API;
-  - TLS-only, verified database connections, and a least-privilege runtime role;
-  - no public admin surfaces, connection pooling, daily maintenance, backups with a rehearsed restore, and cost guardrails.
+- `hosted-deployment`: how the hosted database is protected and shared: TLS-only verified connections, least-privilege roles, no public Postgres or dashboard port, and connection pooling. After the scope change below, the public origin, cost guardrails, scheduled maintenance and backups are left to later changes; `data-retention` is deferred with F2.5.4.
 
 ### Modified Capabilities
 None. The REST and GraphQL behavior (`capture-ingest`, `detection-records`, `detector-registry`, `service-health`, `graphql-api`, `geo-temporal-query`) is unchanged. Presigned uploads already keep image bytes out of the API (Lambda caps request bodies at about 6 MB).
