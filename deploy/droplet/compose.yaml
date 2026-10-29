@@ -63,8 +63,36 @@ services:
       timeout: 5s
       retries: 30
 
+  pgadmin:
+    image: dpage/pgadmin4:9.18.0@sha256:c332c5f6dfba995d9ebc4af261d93506d6876085d712eaaa3defc8dd1a3f26de
+    # Started on demand only (`docker compose --profile tools up -d pgadmin`): it alone needs
+    # about 200 MB of the droplet's 1 GB (design D1, D5).
+    profiles: [tools]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Server mode: the dashboard asks for this login, even through the tunnel.
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-}
+      PGADMIN_DISABLE_POSTFIX: 'true'
+    # Loopback only: reached through `ssh -L 5050:127.0.0.1:5050`, never from the internet.
+    ports:
+      - '127.0.0.1:${PGADMIN_HOST_PORT:-5050}:80'
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+      # The public CA certificate, so the connection to `db` verifies the server (verify-full).
+      - ${CA_CERT_FILE:-./certs/ca.crt}:/certs/ca.crt:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O /dev/null http://127.0.0.1:80/misc/ping']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
 volumes:
   db-data:
+  pgadmin-data:
   # TLS keys and PgBouncer's auth file, written by scripts/make-certs.sh and make-userlist.sh
   # with the owner each service needs (bind mounts can't guarantee that on every host).
   secrets:

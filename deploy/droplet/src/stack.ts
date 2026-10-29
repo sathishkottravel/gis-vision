@@ -70,11 +70,17 @@ export function makeUnrelatedCa(): string {
   }
 }
 
+/** Login for the dashboard (pgAdmin) when the stack starts it. */
+export const PGADMIN_LOGIN = { email: 'admin@example.com', password: secret() };
+
 /**
  * Follows the README's order: `make-certs.sh` into a fresh secrets volume, `up db`,
- * `make-userlist.sh`, then `up pgbouncer`. Ports are random and bound as in production.
+ * `make-userlist.sh`, then `up pgbouncer`, and with `dashboard` also the `tools` profile's
+ * pgAdmin. Ports are random and bound as in production.
  */
-export async function startDropletStack(): Promise<DropletStack> {
+export async function startDropletStack(
+  options: { dashboard?: boolean } = {},
+): Promise<DropletStack> {
   const passwords: Record<Role, string> = {
     postgres: secret(),
     gis_owner: secret(),
@@ -87,7 +93,7 @@ export async function startDropletStack(): Promise<DropletStack> {
   runScript('make-certs.sh', ['127.0.0.1'], { SECRETS_VOLUME: secretsVolume, OUT_DIR: outDir });
   const ca = readFileSync(join(outDir, 'ca.crt'), 'utf8');
 
-  const compose = new DockerComposeEnvironment(DROPLET_DIR, ['compose.yaml', 'compose.test.yaml'])
+  let compose = new DockerComposeEnvironment(DROPLET_DIR, ['compose.yaml', 'compose.test.yaml'])
     .withProjectName(`droplet-test-${run}`)
     .withEnvironment({
       POSTGRES_SUPERUSER_PASSWORD: passwords.postgres,
@@ -95,12 +101,20 @@ export async function startDropletStack(): Promise<DropletStack> {
       GIS_APP_PASSWORD: passwords.gis_app,
       GIS_READONLY_PASSWORD: passwords.gis_readonly,
       SECRETS_VOLUME: secretsVolume,
+      CA_CERT_FILE: join(outDir, 'ca.crt'),
+      PGADMIN_EMAIL: PGADMIN_LOGIN.email,
+      PGADMIN_PASSWORD: PGADMIN_LOGIN.password,
       // Random host ports, so the suite never collides with a local Compose stack.
       DB_HOST_PORT: '0',
       PGBOUNCER_HOST_PORT: '0',
+      PGADMIN_HOST_PORT: '0',
     })
     .withWaitStrategy('db-1', Wait.forHealthCheck())
-    .withWaitStrategy('pgbouncer-1', Wait.forHealthCheck());
+    .withWaitStrategy('pgbouncer-1', Wait.forHealthCheck())
+    .withWaitStrategy('pgadmin-1', Wait.forHealthCheck());
+  if (options.dashboard) {
+    compose = compose.withProfiles('tools');
+  }
 
   const dbEnvironment = await compose.up(['db']);
   runScript('make-userlist.sh', [], {
@@ -108,7 +122,9 @@ export async function startDropletStack(): Promise<DropletStack> {
     DB_CONTAINER: dbEnvironment.getContainer('db-1').getId(),
     PGBOUNCER_CONTAINER: '',
   });
-  const environment = await compose.up(['pgbouncer']);
+  const environment = await compose.up(
+    options.dashboard ? ['pgbouncer', 'pgadmin'] : ['pgbouncer'],
+  );
 
   const host = '127.0.0.1';
   const ports: Record<Endpoint, number> = {
