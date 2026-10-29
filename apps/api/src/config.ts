@@ -6,6 +6,17 @@ const configSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
+  /**
+   * PEM CA certificate for database TLS (Deploy v0, design D4). When set, connections use TLS
+   * and verify the server certificate against it. Escaped `\n` are accepted for one-line values.
+   */
+  DATABASE_SSL_CA: z
+    .string()
+    .transform((pem) => pem.replaceAll(String.raw`\n`, '\n').trim())
+    .refine((pem) => pem.startsWith('-----BEGIN CERTIFICATE-----'))
+    .optional(),
+  /** Connections per process: 1 on Lambda, where one instance serves one request at a time. */
+  DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(100).default(5),
   S3_ENDPOINT: z.url().optional(),
   S3_REGION: z.string().min(1).default('us-east-1'),
   S3_BUCKET: z.string().min(1),
@@ -28,7 +39,7 @@ const configSchema = z.object({
 export type Config = z.infer<typeof configSchema>;
 
 /** The subset needed by tooling that only talks to the database, such as `db:migrate`. */
-const databaseConfigSchema = configSchema.pick({ DATABASE_URL: true });
+const databaseConfigSchema = configSchema.pick({ DATABASE_URL: true, DATABASE_SSL_CA: true });
 
 export type DatabaseConfig = z.infer<typeof databaseConfigSchema>;
 
@@ -45,12 +56,35 @@ export class ConfigError extends Error {
  * so secrets cannot leak into logs.
  */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  return parseEnv(configSchema, env);
+  return parseEnv(withTlsCheck(configSchema), env);
 }
 
 /** Like `loadConfig`, but validates only the database settings. */
 export function loadDatabaseConfig(env: NodeJS.ProcessEnv = process.env): DatabaseConfig {
-  return parseEnv(databaseConfigSchema, env);
+  return parseEnv(withTlsCheck(databaseConfigSchema), env);
+}
+
+/**
+ * node-pg applies `sslmode`/`sslrootcert` from the URL over the `ssl` option, which would
+ * silently drop the CA check, so a URL carrying them is invalid together with DATABASE_SSL_CA.
+ */
+function withTlsCheck<T extends z.ZodType<{ DATABASE_URL: string; DATABASE_SSL_CA?: string }>>(
+  schema: T,
+) {
+  return schema.superRefine((config, ctx) => {
+    // Runs even when DATABASE_URL itself failed validation; that issue is reported already.
+    if (!config.DATABASE_SSL_CA || !URL.canParse(config.DATABASE_URL)) {
+      return;
+    }
+    const params = new URL(config.DATABASE_URL).searchParams;
+    if (params.has('sslmode') || params.has('sslrootcert')) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['DATABASE_URL'],
+        message: 'conflicts with DATABASE_SSL_CA',
+      });
+    }
+  });
 }
 
 function parseEnv<T extends z.ZodType>(schema: T, env: NodeJS.ProcessEnv): z.infer<T> {

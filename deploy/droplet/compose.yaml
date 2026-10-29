@@ -1,5 +1,5 @@
-# Database host for Deploy v0 (design D2). On the droplet: `cp .env.example .env`, fill in the
-# passwords, then `docker compose up -d`. Images are pinned by tag and digest.
+# Database host for Deploy v0 (design D2). On the droplet: fill in `.env`, create the TLS
+# secrets with `scripts/make-certs.sh`, then follow README.md. Images are pinned by tag and digest.
 name: gis-vision-droplet
 
 services:
@@ -21,22 +21,52 @@ services:
       GIS_OWNER_PASSWORD: ${GIS_OWNER_PASSWORD:?set in .env}
       GIS_APP_PASSWORD: ${GIS_APP_PASSWORD:?set in .env}
       GIS_READONLY_PASSWORD: ${GIS_READONLY_PASSWORD:?set in .env}
-    # Loopback only: reached for migrations through `ssh -L 5432:127.0.0.1:5432`.
+    # Loopback only: reached for migrations through `ssh -L 15432:127.0.0.1:5432`.
     # Docker-published ports bypass ufw, so nothing but the pooler may bind all interfaces.
     ports:
       - '127.0.0.1:${DB_HOST_PORT:-5432}:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
+      - secrets:/secrets:ro
       - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
       # Replaces the image's own init script, which would install PostGIS into `public`.
       - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      # As the postgres OS user, so the socket's peer rule accepts it without logging failures.
-      test: ['CMD', 'gosu', 'postgres', 'pg_isready', '-d', 'gis_vision']
+      # Through the socket as the postgres OS user (the peer rule accepts it without logging
+      # failures). The entrypoint's temporary init server has listen_addresses = '', so only
+      # the real server, after initdb, reports healthy.
+      test:
+        [
+          'CMD-SHELL',
+          "gosu postgres psql -d gis_vision -tAc 'SHOW listen_addresses' | grep -qx '[*]'",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.26.0-p0@sha256:b17551c776ef7e5769ef80b956d20f85e2fd25dd8912d31d58f782aad495b711
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    # The only port open to the internet (TLS-only, design D1/D5).
+    ports:
+      - '${PGBOUNCER_HOST_PORT:-6432}:6432'
+    volumes:
+      - secrets:/secrets:ro
+      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'nc -z 127.0.0.1 6432']
       interval: 5s
       timeout: 5s
       retries: 30
 
 volumes:
   db-data:
+  # TLS keys and PgBouncer's auth file, written by scripts/make-certs.sh and make-userlist.sh
+  # with the owner each service needs (bind mounts can't guarantee that on every host).
+  secrets:
+    external: true
+    name: ${SECRETS_VOLUME:-gis-vision-droplet-secrets}

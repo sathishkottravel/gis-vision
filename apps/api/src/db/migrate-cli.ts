@@ -4,8 +4,8 @@ import { poolConfig } from './client.js';
 import { runMigrations } from './migrate.js';
 
 try {
-  const { DATABASE_URL } = loadDatabaseConfig();
-  const pool = new pg.Pool(poolConfig(DATABASE_URL, { max: 1 }));
+  const { DATABASE_URL, DATABASE_SSL_CA } = loadDatabaseConfig();
+  const pool = new pg.Pool(poolConfig(DATABASE_URL, { max: 1 }, DATABASE_SSL_CA));
   try {
     await runMigrations(pool);
     console.log('Migrations applied.');
