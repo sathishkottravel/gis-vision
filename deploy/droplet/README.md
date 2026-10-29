@@ -2,12 +2,13 @@
 
 The Deploy v0 database: PostgreSQL 17 with PostGIS 3.6 in Docker on one DigitalOcean droplet, behind PgBouncer. The API on AWS Lambda reaches it through PgBouncer over TLS. Design: [`phase-2-5-deploy-v0` design.md](../../openspec/changes/phase-2-5-deploy-v0/design.md) (D1-D5).
 
-| Service     | Listens on                  | Notes                                                                                  |
-| ----------- | --------------------------- | -------------------------------------------------------------------------------------- |
-| `pgbouncer` | `6432` (all interfaces)     | the only port for clients from the internet; TLS required, SCRAM, transaction pooling  |
-| `db`        | `127.0.0.1:5432` (loopback) | TLS required; reached for migrations through an SSH tunnel, never open to the internet |
+| Service     | Listens on                  | Notes                                                                                   |
+| ----------- | --------------------------- | --------------------------------------------------------------------------------------- |
+| `pgbouncer` | `6432` (all interfaces)     | the only port for clients from the internet; TLS required, SCRAM, transaction pooling   |
+| `db`        | `127.0.0.1:5432` (loopback) | TLS required; reached for migrations through an SSH tunnel, never open to the internet  |
+| `pgadmin`   | `127.0.0.1:5050` (loopback) | data dashboard, started on demand (profile `tools`); reached only through an SSH tunnel |
 
-pgAdmin, scheduled cleanup, hardening and backups follow in F2.5.3-F2.5.5.
+Scheduled cleanup, hardening and backups follow in F2.5.4-F2.5.5.
 
 ## Roles
 
@@ -18,7 +19,7 @@ pgAdmin, scheduled cleanup, hardening and backups follow in F2.5.3-F2.5.5.
 | `postgres`     | everything (superuser), **only** through the container socket     | `docker compose exec -u postgres db psql` |
 | `gis_owner`    | owns the `gis_vision` database and every object migrations create | `pnpm db:migrate` through the tunnel      |
 | `gis_app`      | read and write rows in the application tables; no DDL             | the API, through PgBouncer                |
-| `gis_readonly` | read rows                                                         | the data dashboard (F2.5.3)               |
+| `gis_readonly` | read rows                                                         | the data dashboard (pgAdmin)              |
 
 No role is a superuser or can create roles or databases. Passwords are SCRAM-SHA-256 only, and `pg_hba.conf` rejects everything else, including the superuser over TCP. PostGIS is installed into the `extensions` schema by the superuser, so migration `0000` finds it present when `gis_owner` runs it.
 
@@ -213,6 +214,60 @@ Remove-Item Env:DATABASE_URL, Env:DATABASE_SSL_CA, Env:DATABASE_POOL_MAX, Env:PO
 
 `/health` returns `{"status":"ok","database":"ok","objectStorage":"ok"}`. Don't run `db:seed-demo` against the droplet: its images would land in your local RustFS while the rows land on the droplet. The deploy runbook seeds it once the S3 bucket exists (F2.5.6).
 
+## Data dashboard (pgAdmin)
+
+pgAdmin 4 explores the data, and its geometry viewer draws PostGIS results on a map. It never listens on a public interface: Compose binds it to the droplet's loopback address, so it is reachable only through an SSH tunnel, and it still asks for its own login. It connects to `db` over verified TLS as the read-only `gis_readonly` role (`pgadmin/servers.json`), so nothing done in the dashboard can change data. It needs about 200 MB, so start it only while you use it.
+
+1. On the droplet, set the dashboard login in `.env` once. A droplet set up before F2.5.3 needs the lines added first; `PGADMIN_EMAIL` must look like an email address:
+
+   ```sh
+   grep -q '^PGADMIN_EMAIL=' .env || printf 'PGADMIN_EMAIL=admin@example.com\nPGADMIN_PASSWORD=change-me\n' >> .env
+   sed -i "s|^PGADMIN_PASSWORD=.*|PGADMIN_PASSWORD=$(openssl rand -hex 16)|" .env
+   grep '^PGADMIN_' .env        # note the email and password
+   ```
+
+2. Start it. The server entry needs `certs/ca.crt`, which `make-certs.sh` created:
+
+   ```sh
+   docker compose --profile tools up -d --wait pgadmin
+   ```
+
+3. On your machine, open a tunnel to its loopback port and leave it running. Local port 15050 avoids the repository's own Compose pgAdmin on 5050:
+
+   ```sh
+   ssh -N -L 15050:127.0.0.1:5050 root@<droplet-ip>
+   ```
+
+4. Browse to `http://localhost:15050`, log in with `PGADMIN_EMAIL` / `PGADMIN_PASSWORD`, expand _gis-vision (droplet, read-only)_ and enter the `gis_readonly` password (`GIS_READONLY_PASSWORD` in `.env`).
+
+5. Open the Query Tool (_Tools > Query Tool_), run a query that returns a geometry column, then click the map icon in the `geom` column header to open the geometry viewer. Before any data is loaded, this draws three points on an OpenStreetMap basemap:
+
+   ```sql
+   SELECT name, ST_SetSRID(ST_MakePoint(lon, lat), 4326) AS geom
+     FROM (VALUES ('Berlin', 13.405, 52.52), ('New York', -74.006, 40.713), ('Taveuni', 179.98, -16.85))
+          AS t(name, lon, lat);
+   ```
+
+   With data, the same works on the tables, for example each detection's effective location:
+
+   ```sql
+   SELECT d.label, d.observed_at, COALESCE(d.geom, c.geom) AS geom
+     FROM detection d JOIN capture c ON c.id = d.capture_id
+    ORDER BY d.observed_at DESC LIMIT 500;
+   ```
+
+6. When done, stop it and close the tunnel. Its saved settings stay in the `pgadmin-data` volume:
+
+   ```sh
+   docker compose --profile tools stop pgadmin
+   ```
+
+From outside, port 5050 must not answer (expected: a connection error or timeout, never a page):
+
+```sh
+curl -m 5 http://<droplet-ip>:5050/login
+```
+
 ## API settings
 
 | Setting             | Default | Meaning                                                                                                        |
@@ -265,3 +320,4 @@ docker volume rm gis-vision-droplet-secrets && rm -r certs
 - `roles.int.test.ts`: the role rules above, over TLS, and plaintext refused.
 - `pooling.int.test.ts`: TLS through PgBouncer and on to Postgres, plaintext and an unrelated CA refused, a wrong password rejected, 50 concurrent clients on at most 10 server connections, and the port bindings.
 - `api-through-pooler.int.test.ts`: the API's own infrastructure through PgBouncer with the CA and one pooled connection, serving `/health` and a two-page GraphQL search.
+- `dashboard.int.test.ts`: pgAdmin bound to loopback only and serving its login page, `servers.json`'s connection (verify-full, `gis_readonly`) working from inside pgAdmin, and `gis_readonly` reading but not writing.

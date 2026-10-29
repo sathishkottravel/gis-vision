@@ -1,0 +1,18 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "gis-vision (droplet, read-only)",
+      "Group": "Servers",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "gis_vision",
+      "Username": "gis_readonly",
+      "Comment": "Read-only dashboard role over verified TLS (design D5). The password is GIS_READONLY_PASSWORD in .env.",
+      "ConnectionParameters": {
+        "sslmode": "verify-full",
+        "sslrootcert": "/certs/ca.crt",
+        "connect_timeout": 10
+      }
+    }
+  }
+}
