@@ -21,17 +21,17 @@ The source of truth for each phase is its change's `proposal.md`. This document 
 
 ## Changes
 
-| Phase | OpenSpec change                                                                                             | State                                                                                |
-| ----- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| 0+1   | [`bootstrap-geo-detection-service`](../openspec/changes/archive/2026-10-28-bootstrap-geo-detection-service) | done, archived 2026-10-28 (specs in [`openspec/specs/`](../openspec/specs))          |
-| 2     | [`phase-2-graphql-geo-queries`](../openspec/changes/archive/2026-10-28-phase-2-graphql-geo-queries)         | done, archived 2026-10-28 (specs in [`openspec/specs/`](../openspec/specs))          |
-| 2.5   | [`phase-2-5-deploy-v0`](../openspec/changes/phase-2-5-deploy-v0)                                            | F2.5.1-F2.5.3 done; the rest moved to the demo change or deferred (see its proposal) |
-| 3     | [`phase-3-schema-driven-ui`](../openspec/changes/phase-3-schema-driven-ui)                                  | skeleton                                                                             |
-| 4     | [`phase-4-async-processing`](../openspec/changes/phase-4-async-processing)                                  | skeleton                                                                             |
-| 5     | [`phase-5-cv-worker`](../openspec/changes/phase-5-cv-worker)                                                | skeleton                                                                             |
-| 6     | [`phase-6-caching-performance`](../openspec/changes/phase-6-caching-performance)                            | skeleton                                                                             |
-| 7     | [`phase-7-iac-production-deploy`](../openspec/changes/phase-7-iac-production-deploy)                        | skeleton                                                                             |
-| 8     | [`phase-8-hardening`](../openspec/changes/phase-8-hardening)                                                | skeleton                                                                             |
+| Phase | OpenSpec change                                                                                             | State                                                                                  |
+| ----- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 0+1   | [`bootstrap-geo-detection-service`](../openspec/changes/archive/2026-10-28-bootstrap-geo-detection-service) | done, archived 2026-10-28 (specs in [`openspec/specs/`](../openspec/specs))            |
+| 2     | [`phase-2-graphql-geo-queries`](../openspec/changes/archive/2026-10-28-phase-2-graphql-geo-queries)         | done, archived 2026-10-28 (specs in [`openspec/specs/`](../openspec/specs))            |
+| 2.5   | [`phase-2-5-deploy-v0`](../openspec/changes/archive/2026-10-29-phase-2-5-deploy-v0)                         | F2.5.1-F2.5.3 done, archived 2026-10-29; the rest moved to the demo change or deferred |
+| 3     | [`phase-3-schema-driven-ui`](../openspec/changes/phase-3-schema-driven-ui)                                  | skeleton                                                                               |
+| 4     | [`phase-4-async-processing`](../openspec/changes/phase-4-async-processing)                                  | skeleton                                                                               |
+| 5     | [`phase-5-cv-worker`](../openspec/changes/phase-5-cv-worker)                                                | skeleton                                                                               |
+| 6     | [`phase-6-caching-performance`](../openspec/changes/phase-6-caching-performance)                            | skeleton                                                                               |
+| 7     | [`phase-7-iac-production-deploy`](../openspec/changes/phase-7-iac-production-deploy)                        | skeleton                                                                               |
+| 8     | [`phase-8-hardening`](../openspec/changes/phase-8-hardening)                                                | skeleton                                                                               |
 
 ## Deployment decision
 

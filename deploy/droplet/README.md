@@ -1,6 +1,6 @@
 # Database host (DigitalOcean droplet)
 
-The Deploy v0 database: PostgreSQL 17 with PostGIS 3.6 in Docker on one DigitalOcean droplet, behind PgBouncer. The API on AWS Lambda reaches it through PgBouncer over TLS. Design: [`phase-2-5-deploy-v0` design.md](../../openspec/changes/phase-2-5-deploy-v0/design.md) (D1-D5).
+The Deploy v0 database: PostgreSQL 17 with PostGIS 3.6 in Docker on one DigitalOcean droplet, behind PgBouncer. The API on AWS Lambda reaches it through PgBouncer over TLS. Design: [`phase-2-5-deploy-v0` design.md](../../openspec/changes/archive/2026-10-29-phase-2-5-deploy-v0/design.md) (D1-D5).
 
 | Service     | Listens on                  | Notes                                                                                   |
 | ----------- | --------------------------- | --------------------------------------------------------------------------------------- |
