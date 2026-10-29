@@ -102,6 +102,49 @@ docker compose up -d --wait               # starts PgBouncer
 
 Then do step 5 above. From now on, every network client needs the CA certificate (below).
 
+## Firewall and SSH
+
+PgBouncer's port is used from the internet (by the API on AWS Lambda, which has no fixed address), so the droplet gets a DigitalOcean cloud firewall that admits only SSH and the pooler (design D10 of `demo-cv-detection-deploy`). Postgres and pgAdmin are bound to loopback anyway; the firewall is a second layer outside the host. Run these on your machine with `doctl` authenticated:
+
+```sh
+DROPLET_ID=$(doctl compute droplet get gis-vision-db --format ID --no-header)
+doctl compute firewall create --name gis-vision-db \
+  --inbound-rules "protocol:tcp,ports:22,address:0.0.0.0/0,address:::/0 protocol:tcp,ports:6432,address:0.0.0.0/0,address:::/0" \
+  --outbound-rules "protocol:tcp,ports:all,address:0.0.0.0/0,address:::/0 protocol:udp,ports:all,address:0.0.0.0/0,address:::/0 protocol:icmp,address:0.0.0.0/0,address:::/0" \
+  --droplet-ids "$DROPLET_ID"
+doctl compute firewall list --format Name,Status,InboundRules,DropletIDs
+```
+
+Each flag takes several rules separated by spaces. Outbound stays open, because the droplet pulls images, packages and Git updates.
+
+SSH must accept keys only. DigitalOcean's key-based images usually start that way; check on the droplet:
+
+```sh
+sshd -T | grep -E '^(passwordauthentication|kbdinteractiveauthentication|permitrootlogin) '
+# expected: passwordauthentication no, kbdinteractiveauthentication no, permitrootlogin without-password
+```
+
+If any value differs, turn password logins off. sshd uses the first value it reads, and files in `sshd_config.d` are read in name order, so the `10-` prefix wins over cloud-init's `50-cloud-init.conf`. Keep your current SSH session open until a new login works:
+
+```sh
+printf 'PasswordAuthentication no\nKbdInteractiveAuthentication no\nPermitRootLogin prohibit-password\n' > /etc/ssh/sshd_config.d/10-gis-vision.conf
+sshd -t && systemctl reload ssh
+```
+
+From your machine, check what the internet sees. Only 22 and 6432 may answer; 5432 and 5050 must time out or be refused:
+
+```sh
+for port in 22 5432 5050 6432; do nc -zv -w 5 <droplet-ip> "$port"; done
+```
+
+In PowerShell: `22, 5432, 5050, 6432 | ForEach-Object { Test-NetConnection <droplet-ip> -Port $_ -WarningAction SilentlyContinue | Select-Object RemotePort, TcpTestSucceeded }`.
+
+A password-only SSH attempt must be refused (expected: `Permission denied (publickey)`):
+
+```sh
+ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password,keyboard-interactive root@<droplet-ip>
+```
+
 ## Run migrations
 
 Migrations run **on your machine**, from the repository root, as `gis_owner`, through an SSH tunnel to the loopback-only port. The droplet itself needs only Docker: don't install Node.js or pnpm there (the standalone pnpm installer also fails on the droplet image with `libatomic.so.1` missing). Local port 15432 avoids clashing with the local Compose database on 5432.
